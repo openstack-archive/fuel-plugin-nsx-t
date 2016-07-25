@@ -1,0 +1,4 @@
+.tox
+.build
+_build
+*.pyc
