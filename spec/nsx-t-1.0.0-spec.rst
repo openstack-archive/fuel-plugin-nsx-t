@@ -9,13 +9,14 @@ Fuel NSX-T plugin v1.0.0
 ========================
 
 NSX-T plugin for Fuel provides an ability to deploy OpenStack cluster that uses
-NSX Transformers platform as backend for Neutron server.
+NSX Transformers SDN platform as backend for Neutron server.
 
 Proposed change
 ===============
 
 Requirements
 ------------
+
 - the plugin must be compatible with Fuel 9.0
 - NSX Transformers platform is correctly configured and is running before
   plugin starts deployment process
@@ -23,7 +24,7 @@ Requirements
   OpenStack cluster was deployed
 - overlay (STT) traffic must reside in Fuel Private network
 
-NSX Transformers plaform provides NSX agents that provide STT support for
+NSX Transformers platform provides NSX agents that provide STT support for
 OpenStack nodes (controller, compute). It also supports ESXi hypervisor.
 
 Plugin component
@@ -41,15 +42,28 @@ Plugin is not compatible with following roles:
 
   * Ironic
 
+NSX Transformers packages for Linux
+-----------------------------------
+
+Linux packages are provided together with NSX distribution. It is not possible
+to distribute them inside plugin package, due to license requirements. Operator
+will be required to upload them into plugin's directory, only after that it
+will be possible to start cluster deployment.
+
+During deployment packages will be copied to node's local disk, local
+repository with highest priority will be formed and packages will be pinned.
+
 Plugin deployment workflow
 --------------------------
 
-#. Install custom OVS package with STT support
+#. Install OVS package provided with NSX Transformers distribution
 #. Install dependencies for OVS and NSX-T packages
 #. Install NSX plugin on controller
-#. Register node as transport node in NSX-T Manager
+#. Add node to NSX fabric (aka management plane)
+#. Register node as transport node in NSX-T Manager (aka control plane)
 #. Add permit rule for STT traffic
-#. Configure neutron-server to use NSX plugin
+#. Stop and disable neutron-openvswitch-agent
+#. Configure neutron-server to use NSX plugin (`nsx_v3`)
 #. Configure neutron dhcp agent
 #. Configure neutron metadata agent
 #. Configure nova to NSX managed OVS bridge
