@@ -1,12 +1,15 @@
-# This file contains wizard components descriptions that are pretty similar to
-# the `environment_config.yaml`.
-# Please, take a look at following link for the details:
-# - https://blueprints.launchpad.net/fuel/+spec/component-registry
-# - https://specs.openstack.org/openstack/fuel-specs/specs/8.0/component-registry.html
-
-- name: additional_service:nsx
-  compatible: []
+- name: network:neutron:core:nsx
+  label: "Neutron with NSX-T plugin"
+  description: "NSX Transformers uses STT tunneling protocol. NSX must be up and running before OpenStack deployment!"
+  bind: !!pairs
+    - "cluster:net_segment_type": "tun"
+  compatible:
+    - name: "hypervisor:vmware"
+    - name: "hypervisor:qemu"
+    - name: "storage:block:lvm"
+    - name: "storage:image:ceph"
+    - name: "storage:object:ceph"
   requires: []
-  incompatible: []
-  label: "Plugin label, that will be shown on UI"
-  description: "Component description (optional)"
+  incompatible:
+    - name: "additional_service:ironic"
+
