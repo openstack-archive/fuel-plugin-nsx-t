@@ -1,11 +1,64 @@
 attributes:
   metadata:
-    # Settings group can be one of "general", "security", "compute", "network",
-    # "storage", "logging", "openstack_services" and "other".
-    group: 'other'
-  nsx_text:
-    value: 'Set default value'
-    label: 'Text field'
-    description: 'Description for text field'
+    group: network
+  nsx_api_managers:
+    value: ''
+    label: 'NSX Manager'
+    description: 'Multiple IP addresses can be separated by commas'
+    weight: 10
+    type: "text"
+    regex:
+      source: &non_empty '^.+$'
+      error: 'Enter IPv4 address'
+  nsx_api_user:
+    value: admin
+    label: 'User'
+    description: ''
+    weight: 15
+    type: "text"
+    regex:
+      source: *non_empty
+      error: 'User field cannot be empty'
+  nsx_api_password:
+    value: ''
+    label: 'Password'
+    description: ''
+    weight: 20
+    type: "password"
+    regex:
+      source: *non_empty
+      error: 'Password field cannot be empty'
+  default_overlay_tz_uuid:
+    value: ''
+    label: 'Overlay transport zone ID'
+    description: ''
     weight: 25
+    type: "text"
+    regex:
+      source: &uuid '[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}'
+      error: 'Enter transport zone UUID'
+  default_vlan_tz_uuid:
+    value: ''
+    label: 'VLAN transport zone ID'
+    description: ''
+    weight: 30
+    type: "text"
+    regex:
+      source: *uuid
+      error: 'Enter transport zone UUID'
+  default_tier0_router_uuid:
+    value: ''
+    label: 'Tier-0 router ID'
+    weight: 35
+    regex:
+      source: *uuid
+      error: 'Enter tier-0 router UUID'
+    type: "text"
+  default_edge_cluster_uuid:
+    value: ''
+    label: 'Edge cluster'
+    weight: 40
+    regex:
+      source: *uuid
+      error: 'Enter cluster UUID'
     type: "text"
