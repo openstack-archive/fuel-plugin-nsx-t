@@ -1,0 +1,8 @@
+Code-Review+2: Artem Savinov <asavinov@mirantis.com>
+Workflow+1: Artem Savinov <asavinov@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 23 Aug 2016 10:27:46 +0000
+Reviewed-on: https://review.openstack.org/355939
+Project: openstack/fuel-plugin-nsx-t
+Branch: refs/heads/master
