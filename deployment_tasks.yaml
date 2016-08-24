@@ -1,3 +1,19 @@
+- id: nsx-t-create-repo
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+    - compute
+  required_for:
+    - pre_deployment_end
+  requires:
+    - pre_deployment_start
+  parameters:
+    puppet_manifest: puppet/manifests/create-repo.pp
+    puppet_modules: puppet/modules
+    timeout: 120
+
 - id: nsx-t-install-plugin
   version: 2.0.0
   type: puppet
