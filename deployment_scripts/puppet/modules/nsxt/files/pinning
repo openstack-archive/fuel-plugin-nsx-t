@@ -1,0 +1,3 @@
+Package: *
+Pin: release l=nsx-t-protected-packages
+Pin-Priority: 9000
