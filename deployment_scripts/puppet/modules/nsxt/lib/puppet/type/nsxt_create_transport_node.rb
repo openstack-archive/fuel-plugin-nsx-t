@@ -10,7 +10,7 @@ Puppet::Type.newtype(:nsxt_create_transport_node) do
     munge do |value|
       array = []
       value.split(',').each do |manager|
-        manager.to_s.strip =~ /(https:\/\/)?(?<host>[^:]+):?(?<port>\d+)?/
+        manager.to_s.strip =~ /(https?:\/\/)?(?<host>[^:]+):?(?<port>\d+)?/
         host= Regexp.last_match[:host]
         port = Regexp.last_match[:port]
         port = 443 if port.to_s.empty?
