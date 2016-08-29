@@ -1,6 +1,21 @@
 attributes:
   metadata:
     group: network
+  insecure:
+    value: true
+    label: "Bypass NSX Manager certificate verification"
+    description: ''
+    weight: 1
+    type: 'checkbox'
+  ca_file:
+    value: ''
+    label: 'CA certificate file'
+    description: 'Specify a CA certificate file to use in NSX Manager certificate verification'
+    weight: 5
+    type: 'file'
+    restrictions:
+      - condition: "settings:nsx-t.insecure.value == true"
+        action: "hide"
   nsx_api_managers:
     value: ''
     label: 'NSX Manager'
@@ -62,3 +77,33 @@ attributes:
       source: *uuid
       error: 'Enter cluster UUID'
     type: "text"
+  uplink_profile_uuid:
+    value: ''
+    label: 'Uplink profile ID'
+    weight: 45
+    regex:
+      source: *uuid
+      error: 'Enter uplink profile ID'
+    type: "text"
+  static_ip_pool_uuid:
+    value: ''
+    label: 'IP pool ID for STT VTEP'
+    weight: 50
+    regex:
+      source: *uuid
+      error: 'Enter IP pool ID'
+    type: "text"
+  transport_zone_uuid:
+    value: ''
+    label: 'Transport zone ID'
+    weight: 55
+    regex:
+      source: *uuid
+      error: 'Enter transport zone ID'
+    type: "text"
+  pnics_pairs:
+    value: 'enp0s1:uplink-1'
+    label: 'Colon separated pnics pairs, one per line'
+    min: 1
+    weight: 60
+    type: "textarea"
