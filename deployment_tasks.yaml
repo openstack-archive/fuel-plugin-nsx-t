@@ -1,3 +1,36 @@
+- id: nsx-t-hiera-override
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+    - compute
+  required_for:
+    - netconfig
+  requires:
+    - globals
+  parameters:
+    puppet_manifest: puppet/manifests/hiera-override.pp
+    puppet_modules: puppet/modules
+    timeout: 120
+
+- id: nsx-t-gem-install
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+    - compute
+  required_for:
+    - nsx-t-reg-controller-on-management-plane
+    - nsx-t-reg-controller-as-transport-node
+  requires:
+    - setup_repositories
+  parameters:
+    puppet_manifest: puppet/manifests/gem-install.pp
+    puppet_modules: puppet/modules
+    timeout: 300
+
 - id: nsx-t-create-repo
   version: 2.0.0
   type: puppet
@@ -6,13 +39,32 @@
     - controller
     - compute
   required_for:
-    - pre_deployment_end
+    - netconfig
   requires:
-    - pre_deployment_start
+    - nsx-t-gem-install
   parameters:
     puppet_manifest: puppet/manifests/create-repo.pp
     puppet_modules: puppet/modules
-    timeout: 120
+    timeout: 600
+
+- id: nsx-t-install-packages
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+    - compute
+  required_for:
+    - openstack-network-start
+    - database
+    - primary-database
+  requires:
+    - netconfig
+    - nsx-t-create-repo
+  parameters:
+    puppet_manifest: puppet/manifests/install-nsx-packages.pp
+    puppet_modules: puppet/modules
+    timeout: 300
 
 - id: nsx-t-install-plugin
   version: 2.0.0
@@ -21,9 +73,9 @@
     - primary-controller
     - controller
   required_for:
-    - nsx-t-configure-plugin
+    - openstack-network-end
   requires:
-    - openstack-network-common-config
+    - openstack-network-server-config
   parameters:
     puppet_manifest: puppet/manifests/install-nsx-plugin.pp
     puppet_modules: puppet/modules
@@ -36,10 +88,142 @@
     - primary-controller
     - controller
   required_for:
-    - openstack-network-neutron-start
+    - openstack-network-end
   requires:
-    - openstack-network-server-nova
+    - nsx-t-install-plugin
   parameters:
     puppet_manifest: puppet/manifests/configure-plugin.pp
-    puppet_modules: puppet/modules:/etc/puppet/modules
+    puppet_modules: puppet/modules
     timeout: 60
+
+- id: nsx-t-neutron-server-stop
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+  required_for:
+    - openstack-network-end
+  requires:
+    - openstack-network-server-config
+  parameters:
+    puppet_manifest: puppet/manifests/neutron-server-stop.pp
+    puppet_modules: puppet/modules
+    timeout: 60
+
+- id: nsx-t-primary-neutron-server-start
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+  required_for:
+    - primary-openstack-network-agents-metadata
+    - primary-openstack-network-agents-dhcp
+    - openstack-network-networks
+  requires:
+    - nsx-t-configure-plugin
+  cross-depends:
+    - name: nsx-t-neutron-server-stop
+  parameters:
+    puppet_manifest: puppet/manifests/neutron-server-start.pp
+    puppet_modules: puppet/modules
+    timeout: 300
+
+- id: nsx-t-reg-controller-on-management-plane
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+  required_for:
+    - primary-openstack-network-agents-metadata
+    - primary-openstack-network-agents-dhcp
+  requires:
+    - nsx-t-install-packages
+  parameters:
+    puppet_manifest: puppet/manifests/reg-controller-on-management-plane.pp
+    puppet_modules: puppet/modules
+    timeout: 300
+
+- id: nsx-t-reg-controller-as-transport-node
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+    - controller
+  required_for:
+    - primary-openstack-network-agents-metadata
+    - primary-openstack-network-agents-dhcp
+  requires:
+    - nsx-t-reg-controller-on-management-plane
+  parameters:
+    puppet_manifest: puppet/manifests/reg-controller-as-transport-node.pp
+    puppet_modules: puppet/modules
+    timeout: 300
+
+- id: nsx-t-neutron-server-start
+  version: 2.0.0
+  type: puppet
+  groups:
+    - controller
+  requires:
+    - nsx-t-neutron-server-stop
+    - nsx-t-configure-plugin
+  required_for:
+    - openstack-network-agents-metadata
+    - openstack-network-agents-dhcp
+  cross-depends:
+    - name: nsx-t-primary-neutron-server-start
+  parameters:
+    puppet_manifest: puppet/manifests/neutron-server-start.pp
+    puppet_modules: puppet/modules
+    timeout: 120
+    strategy:
+      type: one_by_one
+
+- id: nsx-t-primary-configure-agents-dhcp
+  version: 2.0.0
+  type: puppet
+  groups:
+    - primary-controller
+  required_for:
+    - openstack-network-networks
+  requires:
+    - primary-openstack-network-agents-dhcp
+  cross-depends:
+    - name: nsx-t-configure-agents-dhcp
+  parameters:
+    puppet_manifest: puppet/manifests/configure-agents-dhcp.pp
+    puppet_modules: puppet/modules
+    timeout: 180
+
+- id: nsx-t-configure-agents-dhcp
+  version: 2.0.0
+  type: puppet
+  groups:
+    - controller
+  required_for:
+    - openstack-network-end
+  requires:
+    - openstack-network-agents-dhcp
+  parameters:
+    puppet_manifest: puppet/manifests/configure-agents-dhcp.pp
+    puppet_modules: puppet/modules
+    timeout: 120
+
+# skipped tasks
+- id: openstack-network-networks
+  version: 2.0.0
+  type: skipped
+- id: primary-openstack-network-plugins-l2
+  version: 2.0.0
+  type: skipped
+- id: openstack-network-plugins-l2
+  version: 2.0.0
+  type: skipped
+- id: primary-openstack-network-agents-l3
+  version: 2.0.0
+  type: skipped
+- id: openstack-network-agents-l3
+  version: 2.0.0
+  type: skipped

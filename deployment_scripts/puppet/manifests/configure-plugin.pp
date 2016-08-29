@@ -31,6 +31,13 @@ nsx_config {
   'nsx_v3/default_edge_cluster_uuid': value => $edge_cluster;
 }
 
+file { '/etc/neutron/plugin.ini':
+  ensure  => link,
+  target  => $::nsxt::params::nsx_plugin_config,
+  replace => true,
+  require => File[$::nsxt::params::nsx_plugin_dir]
+}
+
 File[$::nsxt::params::nsx_plugin_dir]->
 File[$::nsxt::params::nsx_plugin_config]->
 Nsx_config<||>
