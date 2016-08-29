@@ -31,6 +31,32 @@ nsx_config {
   'nsx_v3/default_edge_cluster_uuid': value => $edge_cluster;
 }
 
+file { '/etc/neutron/plugin.ini':
+  ensure  => link,
+  target  => $::nsxt::params::nsx_plugin_config,
+  replace => true,
+  require => File[$::nsxt::params::nsx_plugin_dir]
+}
+
+if !$settings['insecure'] {
+  nsx_config { 'nsx_v3/insecure': value => $settings['insecure']; }
+
+  $ca_filename = try_get_value($settings['ca_file'],'name','')
+
+  if !empty($ca_filename) {
+    $ca_certificate_content = $settings['ca_file']['content']
+    $ca_file = "${::nsxt::params::nsx_plugin_dir}/${ca_filename}"
+
+    nsx_config { 'nsx_v3/ca_file': value => $ca_file; }
+
+    file { $ca_file:
+      ensure  => present,
+      content => $ca_certificate_content,
+      require => File[$::nsxt::params::nsx_plugin_dir],
+    }
+  }
+}
+
 File[$::nsxt::params::nsx_plugin_dir]->
 File[$::nsxt::params::nsx_plugin_config]->
 Nsx_config<||>
