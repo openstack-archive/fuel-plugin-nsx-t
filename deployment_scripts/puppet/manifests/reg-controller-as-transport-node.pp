@@ -21,7 +21,7 @@ nsxt_create_transport_node { 'Add transport node':
   static_ip_pool_id => $static_ip_pool_uuid,
   transport_zone_id => $transport_zone_uuid,
 }
-
+ 
 if !$settings['insecure'] {
   $ca_filename = try_get_value($settings['ca_file'],'name','')
   if empty($ca_filename) {
@@ -31,4 +31,11 @@ if !$settings['insecure'] {
     $ca_file = "${::nsxt::params::nsx_plugin_dir}/${ca_filename}"
   }
   Nsxt_create_transport_node { ca_file => $ca_file }
+}
+
+firewall {'0000 Accept STT traffic':
+  proto  => 'tcp',
+  dport  => ['7471'],
+  action => 'accept',
+  before => Nsxt_create_transport_node['Add transport node'],
 }
