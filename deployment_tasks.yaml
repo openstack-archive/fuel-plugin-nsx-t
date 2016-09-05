@@ -14,6 +14,20 @@
     puppet_modules: puppet/modules
     timeout: 120
 
+- id: nsx-t-compute-vmware-nova-config
+  version: 2.0.0
+  type: puppet
+  groups:
+    - compute-vmware
+  required_for:
+    - top-role-compute-vmware
+  requires:
+    - top-role-compute
+  parameters:
+    puppet_manifest: puppet/manifests/compute-vmware-nova-config.pp
+    puppet_modules: puppet/modules
+    timeout: 300
+
 - id: nsx-t-gem-install
   version: 2.0.0
   type: puppet

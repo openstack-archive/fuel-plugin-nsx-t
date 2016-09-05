@@ -32,12 +32,12 @@ mod 'firewall',
     :git => 'https://github.com/fuel-infra/puppetlabs-firewall.git',
     :ref => '1.8.0'
 
-## Pull in puppet-keystone
-#mod 'keystone',
-#    :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-#    :ref => 'stable/mitaka'
-#
-## Pull in puppet-nova
-#mod 'nova',
-#    :git => 'https://github.com/fuel-infra/puppet-nova.git',
-#    :ref => 'stable/mitaka'
+# Pull in puppet-keystone
+mod 'keystone',
+    :git => 'https://github.com/fuel-infra/puppet-keystone.git',
+    :ref => 'stable/mitaka'
+
+# Pull in puppet-nova
+mod 'nova',
+    :git => 'https://github.com/fuel-infra/puppet-nova.git',
+    :ref => 'stable/mitaka'
