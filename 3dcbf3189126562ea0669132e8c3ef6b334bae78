@@ -1,0 +1,8 @@
+Code-Review+2: Igor Zinovik <izinovik@mirantis.com>
+Workflow+1: Igor Zinovik <izinovik@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 06 Sep 2016 08:06:13 +0000
+Reviewed-on: https://review.openstack.org/365523
+Project: openstack/fuel-plugin-nsx-t
+Branch: refs/heads/master
