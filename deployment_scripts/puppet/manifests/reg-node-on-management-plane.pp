@@ -1,4 +1,4 @@
-notice('fuel-plugin-nsx-t: reg-controller-on-management-plane.pp')
+notice('fuel-plugin-nsx-t: reg-node-on-management-plane.pp')
 
 include ::nsxt::params
 
