@@ -85,25 +85,72 @@ attributes:
       source: *uuid
       error: 'Enter uplink profile ID'
     type: "text"
-  static_ip_pool_uuid:
+  controller_ip_pool_uuid:
     value: ''
-    label: 'IP pool ID for STT VTEP'
+    label: 'IP pool ID for controller VTEPs'
     weight: 50
     regex:
       source: *uuid
       error: 'Enter IP pool ID'
     type: "text"
-  transport_zone_uuid:
-    value: ''
-    label: 'Transport zone ID'
+  controller_pnics_pairs:
+    value:
+      - 'enp0s1:uplink-1'
+    label: 'Colon separated pnics pairs for controller nodes'
+    min: 1
     weight: 55
+    type: "text_list"
+  compute_ip_pool_uuid:
+    value: ''
+    label: 'IP pool ID for compute VTEPs'
+    weight: 60
     regex:
       source: *uuid
-      error: 'Enter transport zone ID'
+      error: 'Enter IP pool ID'
     type: "text"
-  pnics_pairs:
-    value: 'enp0s1:uplink-1'
-    label: 'Colon separated pnics pairs, one per line'
+  compute_pnics_pairs:
+    value:
+      - 'enp0s1:uplink-1'
+    label: 'Colon separated pnics pairs for compute nodes'
     min: 1
-    weight: 60
-    type: "textarea"
+    weight: 65
+    type: "text_list"
+  floating_ip_range:
+    value: ''
+    label: 'Floating IP range'
+    description: 'Dash separated IP addresses allocation pool from external network, e.g. "start_ip_address-end_ip_address"'
+    weight: 70
+    type: 'text'
+    regex:
+      source: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}-(?:[0-9]{1,3}\.){3}[0-9]{1,3}$'
+      error: 'Invalid IP ranges'
+  floating_net_cidr:
+    value: ''
+    label: 'External network CIDR'
+    description: 'Network in CIDR notation that includes floating IP ranges'
+    weight: 75
+    type: 'text'
+    regex:
+      source: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+      error: 'Invalid network in CIDR notation'
+  floating_net_gw:
+    value: ''
+    label: 'Gateway'
+    description: 'Default gateway for external network, if not defined, first IP address of the network is used'
+    weight: 80
+    type: 'text'
+  internal_net_cidr:
+    value: ''
+    label: 'Internal network CIDR'
+    description: 'Network in CIDR notation for use as internal'
+    weight: 85
+    type: 'text'
+    regex:
+      source: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+      error: 'Invalid network in CIDR notation'
+  internal_net_dns:
+    value: ''
+    label: 'DNS for internal network'
+    description: 'Comma separated IP addresses of DNS server for internal network'
+    weight: 90
+    type: 'text'

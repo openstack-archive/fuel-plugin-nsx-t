@@ -1,14 +1,9 @@
 notice('fuel-plugin-nsx-t: compute_vmware_nova_config.pp')
 
 include ::nova::params
-include ::nsxt::params
 
 $neutron_config = hiera_hash('neutron_config')
 $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-$nova_parameters = {
-  'neutron/service_metadata_proxy'       => { value => 'True' },
-  'neutron/metadata_proxy_shared_secret' => { value => $neutron_metadata_proxy_secret }
-}
 
 $management_vip            = hiera('management_vip')
 $service_endpoint          = hiera('service_endpoint', $management_vip)
@@ -36,4 +31,18 @@ class {'nova::network::neutron':
   neutron_ovs_bridge   => '',
 }
 
-create_resources(nova_config, $nova_parameters)
+nova_config {
+  'neutron/service_metadata_proxy':       value => 'True';
+  'neutron/metadata_proxy_shared_secret': value => $neutron_metadata_proxy_secret;
+}
+
+service { 'nova-compute':
+  ensure     => running,
+  name       => $::nova::params::compute_service_name,
+  enable     => true,
+  hasstatus  => true,
+  hasrestart => true,
+}
+
+Class['nova::network::neutron'] ~> Service['nova-compute']
+Nova_config<| |> ~> Service['nova-compute']
