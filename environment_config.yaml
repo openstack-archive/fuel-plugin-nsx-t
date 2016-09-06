@@ -85,25 +85,41 @@ attributes:
       source: *uuid
       error: 'Enter uplink profile ID'
     type: "text"
-  static_ip_pool_uuid:
-    value: ''
-    label: 'IP pool ID for STT VTEP'
-    weight: 50
-    regex:
-      source: *uuid
-      error: 'Enter IP pool ID'
-    type: "text"
   transport_zone_uuid:
     value: ''
     label: 'Transport zone ID'
-    weight: 55
+    weight: 50
     regex:
       source: *uuid
       error: 'Enter transport zone ID'
     type: "text"
-  pnics_pairs:
-    value: 'enp0s1:uplink-1'
-    label: 'Colon separated pnics pairs, one per line'
+  controller_ip_pool_uuid:
+    value: ''
+    label: 'IP pool ID for STT VTEP for controller nodes'
+    weight: 55
+    regex:
+      source: *uuid
+      error: 'Enter IP pool ID'
+    type: "text"
+  controller_pnics_pairs:
+    value:
+      - 'enp0s1:uplink-1'
+    label: 'Colon separated pnics pairs for controller nodes'
     min: 1
     weight: 60
-    type: "textarea"
+    type: "text_list"
+  compute_ip_pool_uuid:
+    value: ''
+    label: 'IP pool ID for STT VTEP for compute nodes'
+    weight: 65
+    regex:
+      source: *uuid
+      error: 'Enter IP pool ID'
+    type: "text"
+  compute_pnics_pairs:
+    value:
+      - 'enp0s1:uplink-1'
+    label: 'Colon separated pnics pairs for compute nodes'
+    min: 1
+    weight: 70
+    type: "text_list"

@@ -26,7 +26,22 @@
   parameters:
     puppet_manifest: puppet/manifests/compute-vmware-nova-config.pp
     puppet_modules: puppet/modules
-    timeout: 300
+    timeout: 180
+
+- id: nsx-t-compute-nova-config
+  version: 2.0.0
+  type: puppet
+  groups:
+    - compute
+  required_for:
+    - enable_nova_compute_service
+  requires:
+    - top-role-compute
+    - openstack-network-compute-nova
+  parameters:
+    puppet_manifest: puppet/manifests/compute-nova-config.pp
+    puppet_modules: puppet/modules
+    timeout: 180
 
 - id: nsx-t-gem-install
   version: 2.0.0
@@ -36,8 +51,8 @@
     - controller
     - compute
   required_for:
-    - nsx-t-reg-controller-on-management-plane
-    - nsx-t-reg-controller-as-transport-node
+    - nsx-t-reg-node-on-management-plane
+    - nsx-t-reg-node-as-transport-node
   requires:
     - setup_repositories
   parameters:
@@ -145,35 +160,39 @@
     puppet_modules: puppet/modules
     timeout: 300
 
-- id: nsx-t-reg-controller-on-management-plane
+- id: nsx-t-reg-node-on-management-plane
   version: 2.0.0
   type: puppet
   groups:
     - primary-controller
     - controller
+    - compute
   required_for:
     - primary-openstack-network-agents-metadata
     - primary-openstack-network-agents-dhcp
+    - openstack-network-end
   requires:
     - nsx-t-install-packages
   parameters:
-    puppet_manifest: puppet/manifests/reg-controller-on-management-plane.pp
+    puppet_manifest: puppet/manifests/reg-node-on-management-plane.pp
     puppet_modules: puppet/modules
     timeout: 300
 
-- id: nsx-t-reg-controller-as-transport-node
+- id: nsx-t-reg-node-as-transport-node
   version: 2.0.0
   type: puppet
   groups:
     - primary-controller
     - controller
+    - compute
   required_for:
     - primary-openstack-network-agents-metadata
     - primary-openstack-network-agents-dhcp
+    - openstack-network-end
   requires:
-    - nsx-t-reg-controller-on-management-plane
+    - nsx-t-reg-node-on-management-plane
   parameters:
-    puppet_manifest: puppet/manifests/reg-controller-as-transport-node.pp
+    puppet_manifest: puppet/manifests/reg-node-as-transport-node.pp
     puppet_modules: puppet/modules
     timeout: 300
 
@@ -241,5 +260,11 @@
   version: 2.0.0
   type: skipped
 - id: openstack-network-agents-l3
+  version: 2.0.0
+  type: skipped
+- id: openstack-network-agents-sriov
+  version: 2.0.0
+  type: skipped
+- id: enable_nova_compute_service
   version: 2.0.0
   type: skipped
