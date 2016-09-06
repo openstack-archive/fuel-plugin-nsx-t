@@ -1,7 +1,6 @@
 notice('fuel-plugin-nsx-t: compute_vmware_nova_config.pp')
 
 include ::nova::params
-include ::nsxt::params
 
 $neutron_config = hiera_hash('neutron_config')
 $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
@@ -37,3 +36,14 @@ class {'nova::network::neutron':
 }
 
 create_resources(nova_config, $nova_parameters)
+
+service { 'nova-compute':
+  ensure     => running,
+  name       => $::nova::params::compute_service_name,
+  enable     => true,
+  hasstatus  => true,
+  hasrestart => true,
+}
+
+Class['nova::network::neutron'] ~> Service['nova-compute']
+Nova_config<| |> ~> Service['nova-compute']
