@@ -1,0 +1,48 @@
+{% set az = 'vcenter' %}
+{% set compute = 4 %}
+{% set image_count = 100 %}
+
+---
+  GlanceImages.create_and_delete_image:
+{% for concurrency in (4,8,16,32) %}
+    -
+      args:
+        image_location: {{ image_link }}
+        container_format: "bare"
+        disk_format: "vmdk"
+        properties:
+          hypervisor_type: "vmware"
+          vmware_disktype: "streamOptimized"
+          vmware_adaptertype: "lsiLogic"
+      runner:
+        type: "constant"
+        times: {{ concurrency * 10 }}
+        concurrency: {{ concurrency }}
+      context:
+        users:
+          tenants: {{ compute }}
+          users_per_tenant: 10 
+      sla:
+        failure_rate:
+          max: 0
+{% endfor %}
+    -
+      args:
+        image_location: {{ image_link }}
+        container_format: "bare"
+        disk_format: "vmdk"
+        properties:
+          hypervisor_type: "vmware"
+          vmware_disktype: "streamOptimized"
+          vmware_adaptertype: "lsiLogic"
+      runner:
+        type: "constant"
+        times: 1024 
+        concurrency: 16 
+      context:
+        users:
+          tenants: {{ compute }}
+          users_per_tenant: 10 
+      sla:
+        failure_rate:
+          max: 0
