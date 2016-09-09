@@ -1,0 +1,22 @@
+---
+  GlanceImages.create_and_delete_image:
+    -
+      args:
+        image_location: {{ image_link }}
+        container_format: "bare"
+        disk_format: "vmdk"
+        properties:
+          hypervisor_type: "vmware"
+          vmware_disktype: "streamOptimized"
+          vmware_adaptertype: "lsiLogic"
+      runner:
+        type: "constant"
+        times: {{ compute * 6 }}
+        concurrency: {{ concurrency }}
+      context:
+        users:
+          tenants: {{ compute * 2 }}
+          users_per_tenant: 3
+      sla:
+        failure_rate:
+          max: 0
