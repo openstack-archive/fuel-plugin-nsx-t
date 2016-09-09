@@ -1,0 +1,44 @@
+{% set az = 'vcenter' %}
+{% set cinder_az = 'vcenter-cinder' %}
+{% set compute = 4 %}
+{% set image = 'TestVM-VMDK' %}
+{% set flavor = 'm1.nano' %}
+{% set tenants = 'demo' %}
+---
+  CinderVolumes.create_and_attach_volume:
+{% for concurrency in (4,8,12,16) %}
+    -
+      args:
+          size: 10
+          image:
+            name: {{ image }}
+          flavor:
+            name: {{ flavor }}
+            # RAM: 2Gb
+            # CPU: 2
+            # Disk: 3Gb
+          create_vm_params:
+            availability_zone: {{ az }}
+          create_volume_params:
+            availability_zone: {{ cinder_az }}
+      runner:
+        type: "constant"
+        times: {{ concurrency * 10 }}
+        concurrency: {{ concurrency }}
+      context:
+        users:
+          tenants: {{ compute }}
+          users_per_tenant: 4
+        quotas:
+          cinder:
+            volumes: -1
+            gigabytes: -1
+            snapshots: -1
+        api_versions:
+            cinder:
+                version: 2
+                service_name: cinderv2
+      sla:
+        failure_rate:
+          max: 10 
+{% endfor %}
