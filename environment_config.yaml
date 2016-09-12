@@ -94,12 +94,11 @@ attributes:
       error: 'Enter IP pool ID'
     type: "text"
   controller_pnics_pairs:
-    value:
-      - 'enp0s1:uplink-1'
-    label: 'Colon separated pnics pairs for controller nodes'
-    min: 1
+    value: "enp0s1:uplink-1"
+    label: 'STT pnic:uplink pairs for controller nodes'
+    description: 'Colon separated pnics pairs for controller nodes'
     weight: 55
-    type: "text_list"
+    type: "textarea"
   compute_ip_pool_uuid:
     value: ''
     label: 'IP pool ID for compute VTEPs'
@@ -109,12 +108,11 @@ attributes:
       error: 'Enter IP pool ID'
     type: "text"
   compute_pnics_pairs:
-    value:
-      - 'enp0s1:uplink-1'
-    label: 'Colon separated pnics pairs for compute nodes'
-    min: 1
+    value: "enp0s1:uplink-1"
+    label: 'STT pnic:uplink pairs for compute nodes'
+    description: 'Colon separated pnics pairs for compute nodes'
     weight: 65
-    type: "text_list"
+    type: "textarea"
   floating_ip_range:
     value: ''
     label: 'Floating IP range'

@@ -143,7 +143,7 @@ Puppet::Type.type(:nsxt_create_transport_node).provide(:nsxt_create_transport_no
     if not pnics.instance_of? Array
       pnics = [pnics]
     end
-    pnics.each do |pnic_pair|
+    pnics.each_line do |pnic_pair|
       device,uplink = pnic_pair.split(':')
       result_pnic_pairs.push({'device_name' => device.strip, 'uplink_name' => uplink.strip})
     end
