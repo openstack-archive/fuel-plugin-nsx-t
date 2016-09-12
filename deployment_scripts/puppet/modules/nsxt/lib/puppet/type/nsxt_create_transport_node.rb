@@ -38,8 +38,8 @@ Puppet::Type.newtype(:nsxt_create_transport_node) do
     desc 'Ids of Uplink HostSwitch profiles to be associated with this HostSwitch.'
   end
 
-  newparam(:pnics, :array_matching => :all) do
-    desc 'Array of string with "device_name : uplink_name" pairs.'
+  newparam(:pnics) do
+    desc 'Multiline string with "device_name : uplink_name" pairs.'
   end
 
   newparam(:static_ip_pool_id) do

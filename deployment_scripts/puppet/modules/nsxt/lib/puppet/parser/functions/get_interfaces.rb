@@ -5,7 +5,7 @@ EOS
   ) do |args|
     pnics = args[0]
     vtep_interfaces = []
-    pnics.each do |pnic_pair|
+    pnics.each_line do |pnic_pair|
       device,uplink = pnic_pair.split(':')
       vtep_interfaces.push(device.strip)
     end
