@@ -18,7 +18,7 @@ if !$settings['insecure'] {
   $ca_filename = try_get_value($settings['ca_file'],'name','')
   if empty($ca_filename) {
     # default path to ca for Ubuntu 14.0.4
-    $ca_file = "/etc/ssl/certs/ca-certificates.crt"
+    $ca_file = '/etc/ssl/certs/ca-certificates.crt'
   } else {
     $ca_file = "${::nsxt::params::nsx_plugin_dir}/${ca_filename}"
   }

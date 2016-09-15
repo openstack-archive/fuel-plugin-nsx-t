@@ -8,7 +8,7 @@ file { $::nsxt::params::nsx_plugin_dir:
 
 file { $::nsxt::params::nsx_plugin_config:
   ensure  => present,
-  content => template("nsxt/nsx.ini")
+  content => template('nsxt/nsx.ini')
 }
 
 
