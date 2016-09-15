@@ -7,11 +7,11 @@ $nsx_required_packages = ['libunwind8', 'zip', 'libgflags2', 'libgoogle-perftool
                           'libboost-iostreams1.54.0', 'libvirt0']
 
 $nsx_packages = ['libgoogle-glog0', 'libjson-spirit', 'nicira-ovs-hypervisor-node', 'nsxa',
-                 'nsx-agent', 'nsx-aggservice', 'nsx-cli', 'nsx-da', 'nsx-host',
-                 'nsx-host-node-status-reporter', 'nsx-lldp', 'nsx-logical-exporter', 'nsx-mpa',
-                 'nsx-netcpa', 'nsx-sfhc', 'nsx-transport-node-status-reporter',
-                 'openvswitch-common', 'openvswitch-datapath-dkms', 'openvswitch-pki',
-                 'openvswitch-switch', 'python-openvswitch', 'tcpdump-ovs']
+                'nsx-agent', 'nsx-aggservice', 'nsx-cli', 'nsx-da', 'nsx-host',
+                'nsx-host-node-status-reporter', 'nsx-lldp', 'nsx-logical-exporter', 'nsx-mpa',
+                'nsx-netcpa', 'nsx-sfhc', 'nsx-transport-node-status-reporter',
+                'openvswitch-common', 'openvswitch-datapath-dkms', 'openvswitch-pki',
+                'openvswitch-switch', 'python-openvswitch', 'tcpdump-ovs']
 
 package { $nsx_required_packages:
   ensure => latest,
