@@ -76,7 +76,11 @@ def get_component_url(manager, username, password)
   manifest.split(/\n/).each do |str|
     if str.include? 'NSX_HOST_COMPONENT_UBUNTU_1404_TAR'
       url = str.split('=')[1]
-      return "http://#{manager}:8080#{url}"
+      if node_version.start_with?('1.0.0')
+        return "http://#{manager}:8080#{url}"
+      else
+        return "http://#{manager}:8080/repository/#{url}"
+      end
     end
   end
 end
