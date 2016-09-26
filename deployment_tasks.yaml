@@ -247,7 +247,7 @@
     timeout: 120
 
 - id: nsx-t-neutron-network-create
-  version: 2.0.0
+  version: 2.1.0
   type: puppet
   groups:
     - primary-controller
@@ -257,6 +257,8 @@
     - nsx-t-primary-neutron-server-start
     - nsx-t-configure-agents-dhcp
     - primary-openstack-network-agents-metadata
+  condition:
+    yaql_exp: "changed($.quantum)"
   parameters:
     puppet_manifest: puppet/manifests/neutron-network-create.pp
     puppet_modules: puppet/modules
