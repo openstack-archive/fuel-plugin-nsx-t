@@ -65,14 +65,14 @@ core
 Steps
 #####
 
-    1. Log in to the Fuel with preinstalled plugin and deployed enviroment with 3 controllers and 1 compute.
+    1. Log in to the Fuel with preinstalled plugin and deployed ha enviroment with 3 controllers, 1 compute and 1 compute-vmware nodes.
     2. Log in to Horizon.
-    3. Create vcenter VM and check connectivity to outside world from VM.
+    3. Launch two instances in different az (nova and vcenter) and check connectivity to outside world from VMs.
     4. Shutdown primary controller.
     5. Ensure that VIPs are moved to other controller.
-    6. Ensure taht there is a connectivity to outside world from created VM.
+    6. Ensure that there is a connectivity to outside world from created VMs.
     7. Create a new network and attach it to default router.
-    8. Create a vcenter VM with new network and check network connectivity via ICMP.
+    8. Launch two instances in different az (nova and vcenter) with new network and check network connectivity via ICMP.
 
 
 Expected result
@@ -81,20 +81,20 @@ Expected result
 Networking works correct after failure of primary controller.
 
 
-Check cluster functionality after reboot vcenter.
--------------------------------------------------
+Check cluster functionality after interrupt connection with NSX manager.
+------------------------------------------------------------------------
 
 
 ID
 ##
 
-nsxt_reboot_vcenter
+nsxt_interrupt_connection
 
 
 Description
 ###########
 
-Test verifies that system functionality is ok when vcenter has been rebooted.
+Test verifies that cluster will functional after interrupt connection with NSX manager.
 
 
 Complexity
@@ -107,23 +107,17 @@ Steps
 #####
 
     1. Log in to the Fuel with preinstalled plugin and deployed enviroment.
-    2. Log in to Horizon.
-    3. Launch vcenter instance VM_1 with image TestVM-VMDK and flavor m1.tiny.
-    4. Launch vcenter instance VM_2 with image TestVM-VMDK and flavor m1.tiny.
-    5. Check connection between VMs, send ping from VM_1 to VM_2 and vice verse.
-    6. Reboot vcenter::
-
-          vmrun -T ws-shared -h https://localhost:443/sdk -u vmware -p pass
-          reset "[standard] vcenter/vcenter.vmx"
-
-    7. Check that controller lost connection with vCenter.
-    8. Wait for vCenter is online.
-    9. Ensure that all instances from vCenter are displayed in dashboard.
-    10. Ensure there is connectivity between vcenter1's and vcenter2's VMs.
-    11. Run OSTF.
+    2. Launch instances in each az with default network.
+    3. Disrupt connection with NSX manager and check that controller lost connection with NSX.
+    4. Try to create new network.
+    5. Restore connection with NSX manager.
+    6. Try to create new network again.
+    7. Launch instance in created network.
+    8. Ensure that all instances have connectivity to external network.
+    9. Run OSTF.
 
 
 Expected result
 ###############
 
-Cluster should be deployed and all OSTF test cases should be passed. Ping should get response.
+After restore connection with NSX manager cluster should be fully functional. All created VMs should be operable. All OSTF test cases should be passed.
