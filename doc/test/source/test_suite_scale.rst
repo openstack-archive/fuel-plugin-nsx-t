@@ -36,21 +36,19 @@ Steps
         * Controller
         * Controller
         * Controller
-        * Controller
-        * Cinder-vmware
-        * Compute-vmware
+        * Compute
     4. Configure interfaces on nodes.
     5. Configure network settings.
     6. Enable and configure NSX-T plugin.
-    7. Configure VMware vCenter Settings. Add 2 vSphere clusters and configure Nova Compute instances on conrollers and compute-vmware.
+    7. Configure VMware vCenter Settings. Add vSphere cluster and configure Nova Compute instance on conrollers.
     8. Deploy cluster.
     9. Run OSTF.
     10. Launch 1 KVM and 1 vcenter VMs.
-    11. Remove node with controller role.
+    11. Add 2 controller nodes.
     12. Redeploy cluster.
     13. Check that all instances are in place.
     14. Run OSTF.
-    15. Add controller.
+    15. Remove 2 controller nodes.
     16. Redeploy cluster.
     17. Check that all instances are in place.
     18. Run OSTF.
@@ -103,7 +101,7 @@ Steps
     6. Enable and configure NSX-T plugin.
     7. Deploy cluster.
     8. Run OSTF.
-    9. Launch KVM vm.
+    9. Launch instance.
     10. Add node with compute role.
     11. Redeploy cluster.
     12. Check that all instances are in place.
@@ -163,12 +161,12 @@ Steps
     8. Deploy cluster.
     9. Run OSTF.
     10. Launch vcenter vm.
-    11. Remove node with compute-vmware role.
+    11. Add node with compute-vmware role.
     12. Reconfigure vcenter compute clusters.
     13. Redeploy cluster.
     14. Check vm instance has been removed.
     15. Run OSTF.
-    16. Add node with compute-vmware role.
+    16. Remove node with compute-vmware role.
     17. Reconfigure vcenter compute clusters.
     18. Redeploy cluster.
     19. Run OSTF.
