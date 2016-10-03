@@ -65,7 +65,7 @@ core
 Steps
 #####
 
-    1. Log in to the Fuel with preinstalled plugin and deployed enviroment with 3 controllers.
+    1. Log in to the Fuel with preinstalled plugin and deployed enviroment with 3 controllers and 1 compute.
     2. Log in to Horizon.
     3. Create vcenter VM and check connectivity to outside world from VM.
     4. Shutdown primary controller.
