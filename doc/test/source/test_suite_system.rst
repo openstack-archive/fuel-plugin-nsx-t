@@ -41,7 +41,7 @@ Steps
     4. Configure interfaces on nodes.
     5. Configure network settings.
     6. Enable and configure NSX-T plugin.
-    7. Configure VMware vCenter Settings. Add 1 vSphere cluster and configure Nova Compute instance on conrollers.
+    7. Configure VMware vCenter Settings. Add 1 vSphere cluster and configure Nova Compute instance on controllers.
     8. Verify networks.
     9. Deploy cluster.
     10. Run OSTF.
