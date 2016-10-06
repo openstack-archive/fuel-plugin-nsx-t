@@ -116,7 +116,7 @@ def check_connection_through_host(remote, ip_pair, command='pingv4',
     :param ip_pair: type list, ips of instances
     :param remote: access point IP
     :param command: type string, key 'pingv4', 'pingv6' or 'arping'
-    :param  result_of_command: type integer, exit code of command execution
+    :param result_of_command: type integer, exit code of command execution
     :param timeout: wait to get expected result
     :param interval: interval of executing command
     """
@@ -293,7 +293,7 @@ def check_service(ip, commands):
     :param ip: ip address of node
     :param commands: type list, nova commands to execute on controller,
                      example of commands:
-                     ['nova-manage service list | grep vcenter-vmcluster1'
+                     ['nova-manage service list | grep vcenter-vmcluster1']
     """
     ssh_manager = SSHManager()
     ssh_manager.check_call(ip=ip, command='source openrc')
