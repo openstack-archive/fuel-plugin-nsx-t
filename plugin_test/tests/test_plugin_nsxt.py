@@ -139,7 +139,6 @@ class TestNSXtSmoke(TestNSXtBase):
         self.fuel_web.run_ostf(cluster_id=cluster_id,
                                test_sets=['smoke', 'sanity'])
 
-
 @test(groups=["nsxt_plugin", "nsxt_bvt_scenarios"])
 class TestNSXtBVT(TestNSXtBase):
     """NSX-t BVT scenarios"""

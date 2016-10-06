@@ -45,8 +45,6 @@ class TestNSXtScale(TestNSXtBase):
                 * Storage: default
             3. Add nodes with the following roles:
                 * Controller
-                * Controller
-                * Controller
                 * Compute
             4. Configure interfaces on nodes.
             5. Enable plugin and configure network settings.
@@ -81,8 +79,6 @@ class TestNSXtScale(TestNSXtBase):
         self.show_step(3)  # Add nodes
         self.fuel_web.update_nodes(cluster_id,
                                    {'slave-01': ['controller'],
-                                    'slave-02': ['controller'],
-                                    'slave-03': ['controller'],
                                     'slave-04': ['compute']})
 
         self.show_step(4)  # Configure interfaces on nodes
@@ -113,8 +109,9 @@ class TestNSXtScale(TestNSXtBase):
         os_help.create_instance(os_conn, az='vcenter')
 
         self.show_step(10)  # Add 2 controller nodes
-        self.fuel_web.update_nodes(cluster_id, {'slave-05': ['controller'],
-                                                'slave-06': ['controller']})
+        self.fuel_web.update_nodes(cluster_id, {'slave-02': ['controller'],
+                                                'slave-03': ['controller']})
+        self.reconfigure_cluster_interfaces(cluster_id)
 
         self.show_step(11)  # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
@@ -216,6 +213,7 @@ class TestNSXtScale(TestNSXtBase):
 
         self.show_step(9)  # Add node with compute role
         self.fuel_web.update_nodes(cluster_id, {'slave-05': ['compute']})
+        self.reconfigure_cluster_interfaces(cluster_id)
 
         self.show_step(10)  # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
@@ -326,6 +324,7 @@ class TestNSXtScale(TestNSXtBase):
         self.show_step(10)  # Add node with compute-vmware role
         self.fuel_web.update_nodes(cluster_id,
                                    {'slave-05': ['compute-vmware']})
+        self.reconfigure_cluster_interfaces(cluster_id)
 
         self.show_step(11)  # Reconfigure vcenter compute clusters
         target_node2 = self.fuel_web.get_nailgun_node_by_name('slave-05')
