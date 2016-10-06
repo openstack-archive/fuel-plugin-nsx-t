@@ -63,7 +63,7 @@ def create_instance(os_conn, net=None, az='nova', sg_names=None,
                                image=image,
                                net_id=net['id'],
                                security_groups=sg,
-                               flavor_id=flavor.id,
+                               flavor=flavor,
                                **kwargs)
     return vm
 
