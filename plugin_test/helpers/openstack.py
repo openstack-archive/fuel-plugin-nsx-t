@@ -116,7 +116,7 @@ def check_connection_through_host(remote, ip_pair, command='pingv4',
     :param ip_pair: type list, ips of instances
     :param remote: access point IP
     :param command: type string, key 'pingv4', 'pingv6' or 'arping'
-    :param  result_of_command: type integer, exit code of command execution
+    :param result_of_command: type integer, exit code of command execution
     :param timeout: wait to get expected result
     :param interval: interval of executing command
     """
@@ -293,7 +293,7 @@ def check_service(ip, commands):
     :param ip: ip address of node
     :param commands: type list, nova commands to execute on controller,
                      example of commands:
-                     ['nova-manage service list | grep vcenter-vmcluster1'
+                     ['nova-manage service list | grep vcenter-vmcluster1']
     """
     ssh_manager = SSHManager()
     ssh_manager.check_call(ip=ip, command='source openrc')
@@ -367,7 +367,7 @@ def verify_instance_state(os_conn, instances=None, expected_state='ACTIVE',
                              expected_state))
 
 
-def create_access_point(os_conn, nics, security_groups):
+def create_access_point(os_conn, nics, security_groups, host_num=0):
     """Create access point.
 
     Creating instance with floating ip as access point to instances
@@ -375,10 +375,11 @@ def create_access_point(os_conn, nics, security_groups):
 
     :param os_conn: type object, openstack
     :param nics: type dictionary, neutron networks to assign to instance
-    :param security_groups: A list of security group names
+    :param security_groups: list of security group names
+    :param host_num: index of the host
     """
-    # Get any available host
-    host = os_conn.nova.services.list(binary='nova-compute')[0]
+    # Get the host
+    host = os_conn.nova.services.list(binary='nova-compute')[host_num]
 
     access_point = create_instances(  # create access point server
         os_conn=os_conn, nics=nics,
