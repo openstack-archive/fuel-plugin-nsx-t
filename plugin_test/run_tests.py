@@ -43,6 +43,7 @@ class CloseSSHConnectionsPlugin(Plugin):
 
 def import_tests():
     from tests import test_plugin_nsxt  # noqa
+    from tests import test_plugin_system  # noqa
 
 
 def run_tests():
