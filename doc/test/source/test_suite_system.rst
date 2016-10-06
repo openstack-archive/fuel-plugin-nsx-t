@@ -2,20 +2,20 @@ System
 ======
 
 
-Setup for system tests
-----------------------
+Set up for system tests
+-----------------------
 
 
 ID
 ##
 
-nsxt_ha_mode
+nsxt_setup_system
 
 
 Description
 ###########
 
-Deploy environment with 3 controlers and 1 Compute node. Nova Compute instances are running on controllers nodes. It is a config for all system tests.
+Deploy environment with 3 controllers and 1 Compute node. Nova Compute instances are running on controllers and compute-vmware nodes. It is a config for all system tests.
 
 
 Complexity
@@ -27,21 +27,21 @@ core
 Steps
 #####
 
-    1. Log in to the Fuel web UI with preinstalled NSX-T plugin.
-    2. Create a new environment with following parameters:
+    1. Log in to the Fuel web UI with pre-installed NSX-T plugin.
+    2. Create new environment with the following parameters:
         * Compute: KVM, QEMU with vCenter
         * Networking: Neutron with NSX-T plugin
         * Storage: default
         * Additional services: default
     3. Add nodes with following roles:
         * Controller
-        * Controller
-        * Controller
+        * Compute-vmware
+        * Compute
         * Compute
     4. Configure interfaces on nodes.
     5. Configure network settings.
     6. Enable and configure NSX-T plugin.
-    7. Configure VMware vCenter Settings. Add 1 vSphere cluster and configure Nova Compute instance on conrollers.
+    7. Configure VMware vCenter Settings. Add 2 vSphere clusters, configure Nova Compute instances on controller and compute-vmware.
     8. Verify networks.
     9. Deploy cluster.
     10. Run OSTF.
@@ -50,294 +50,11 @@ Steps
 Expected result
 ###############
 
-Cluster should be deployed and all OSTF test cases should be passed.
+Cluster should be deployed and all OSTF test cases should pass.
 
 
-Check abilities to create and terminate networks on NSX.
---------------------------------------------------------
-
-
-ID
-##
-
-nsxt_create_terminate_networks
-
-
-Description
-###########
-
-Verifies that creation of network is translated to vcenter.
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard.
-    3. Add private networks net_01 and net_02.
-    4. Check taht networks are present in the vcenter.
-    5. Remove private network net_01.
-    6. Check that network net_01 has been removed from the vcenter.
-    7. Add private network net_01.
-
-
-Expected result
-###############
-
-No errors.
-
-
-Check abilities to bind port on NSX to VM, disable and enable this port.
-------------------------------------------------------------------------
-
-
-ID
-##
-
-nsxt_ability_to_bind_port
-
-
-Description
-###########
-
-Verifies that system can not manipulate with port(plugin limitation).
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Log in to Horizon Dashboard.
-    2. Navigate to Project -> Compute -> Instances
-    3. Launch instance VM_1 with image TestVM-VMDK and flavor m1.tiny in vcenter az.
-    4. Launch instance VM_2 with image TestVM and flavor m1.tiny in nova az.
-    5. Verify that VMs should communicate between each other. Send icmp ping from VM_1 to VM_2 and vice versa.
-    6. Disable NSX_port of VM_1.
-    7. Verify that VMs should communicate between each other. Send icmp ping from VM_2 to VM_1 and vice versa.
-    8. Enable NSX_port of VM_1.
-    9. Verify that VMs should communicate between each other. Send icmp ping from VM_1 to VM_2 and vice versa.
-
-
-Expected result
-###############
-
-Pings should get a response.
-
-
-Check abilities to assign multiple vNIC to a single VM.
--------------------------------------------------------
-
-
-ID
-##
-
-nsxt_multi_vnic
-
-
-Description
-###########
-
-Check abilities to assign multiple vNICs to a single VM.
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard.
-    3. Add two private networks (net01 and net02).
-    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.101.0/24) to each network.
-       NOTE: We have a constraint about network interfaces. One of subnets should have gateway and another should not. So disable gateway on that subnet.
-    5. Launch instance VM_1 with image TestVM-VMDK and flavor m1.tiny in vcenter az.
-    6. Launch instance VM_2 with image TestVM and flavor m1.tiny in nova az.
-    7. Check abilities to assign multiple vNIC net01 and net02 to VM_1.
-    8. Check abilities to assign multiple vNIC net01 and net02 to VM_2.
-    9. Send icmp ping from VM_1 to VM_2 and vice versa.
-
-
-Expected result
-###############
-
-VM_1 and VM_2 should be attached to multiple vNIC net01 and net02. Pings should get a response.
-
-
-Check connectivity between VMs attached to different networks with a router between them.
------------------------------------------------------------------------------------------
-
-
-ID
-##
-
-nsxt_connectivity_diff_networks
-
-
-Description
-###########
-
-Test verifies that there is a connection between networks connected through the router.
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard.
-    3. Add two private networks (net01 and net02).
-    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.101.0/24) to each network. Disable gateway for all subnets.
-    5. Navigate to Project -> Compute -> Instances
-    6. Launch instances VM_1 and VM_2 in the network 192.168.101.0/24 with image TestVM-VMDK and flavor m1.tiny in vcenter az. Attach default private net as a NIC 1.
-    7. Launch instances VM_3 and VM_4 in the network 192.168.101.0/24 with image TestVM and flavor m1.tiny in nova az. Attach default private net as a NIC 1.
-    8. Verify that VMs of same networks should communicate
-       between each other. Send icmp ping from VM_1 to VM_2, VM_3 to VM_4 and vice versa.
-    9. Verify that VMs of different networks should not communicate
-       between each other. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
-    10. Create Router_01, set gateway and add interface to external network.
-    11. Enable gateway on subnets. Attach private networks to router.
-    12. Verify that VMs of different networks should communicate between each other. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
-    13. Add new Router_02, set gateway and add interface to external network.
-    14. Detach net_02 from Router_01 and attach to Router_02
-    15. Assign floating IPs for all created VMs.
-    16. Verify that VMs of different networks should communicate between each other by FIPs. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
-
-
-Expected result
-###############
-
-Pings should get a response.
-
-
-Check isolation between VMs in different tenants.
--------------------------------------------------
-
-
-ID
-##
-
-nsxt_different_tenants
-
-
-Description
-###########
-
-Verifies isolation in different tenants.
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard.
-    3. Create non-admin tenant test_tenant.
-    4. Navigate to Identity -> Projects.
-    5. Click on Create Project.
-    6. Type name test_tenant.
-    7. On tab Project Members add admin with admin and member.
-       Activate test_tenant project by selecting at the top panel.
-    8. Navigate to Project -> Network -> Networks
-    9. Create network with 2 subnet.
-       Create Router, set gateway and add interface.
-    10. Navigate to Project -> Compute -> Instances
-    11. Launch instance VM_1
-    12. Activate default tenant.
-    13. Navigate to Project -> Network -> Networks
-    14. Create network with subnet.
-        Create Router, set gateway and add interface.
-    15. Navigate to Project -> Compute -> Instances
-    16. Launch instance VM_2.
-    17. Verify that VMs on different tenants should not communicate between each other. Send icmp ping from VM_1 of admin tenant to VM_2 of test_tenant and vice versa.
-
-
-Expected result
-###############
-
-Pings should not get a response.
-
-
-Check connectivity between VMs with same ip in different tenants.
------------------------------------------------------------------
-
-
-ID
-##
-
-nsxt_same_ip_different_tenants
-
-
-Description
-###########
-
-Verifies connectivity with same IP in different tenants.
-
-
-Complexity
-##########
-
-advanced
-
-
-Steps
-#####
-
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard.
-    3. Create 2 non-admin tenants 'test_1' and 'test_2'.
-    4. Navigate to Identity -> Projects.
-    5. Click on Create Project.
-    6. Type name 'test_1' of tenant.
-    7. Click on Create Project.
-    8. Type name 'test_2' of tenant.
-    9. On tab Project Members add admin with admin and member.
-    10. In tenant 'test_1' create net1 and subnet1 with CIDR 10.0.0.0/24
-    11. In tenant 'test_1' create security group 'SG_1' and add rule that allows ingress icmp traffic
-    12. In tenant 'test_2' create net2 and subnet2 with CIDR 10.0.0.0/24
-    13. In tenant 'test_2' create security group 'SG_2'
-    14. In tenant 'test_1' add VM_1 of vcenter in net1 with ip 10.0.0.4 and 'SG_1' as security group.
-    15. In tenant 'test_1' add VM_2 of nova in net1 with ip 10.0.0.5 and 'SG_1' as security group.
-    16. In tenant 'test_2' create net1 and subnet1 with CIDR 10.0.0.0/24
-    17. In tenant 'test_2' create security group 'SG_1' and add rule that allows ingress icmp traffic
-    18. In tenant 'test_2' add VM_3 of vcenter in net1 with ip 10.0.0.4 and 'SG_1' as security group.
-    19. In tenant 'test_2' add VM_4 of nova in net1 with ip 10.0.0.5 and 'SG_1' as security group.
-    20. Assign floating IPs for all created VMs.
-    21. Verify that VMs with same ip on different tenants should communicate between each other by FIPs. Send icmp ping from VM_1 to VM_3, VM_2 to Vm_4 and vice versa.
-
-
-Expected result
-###############
-
-Pings should get a response.
-
-
-Check connectivity Vms to public network.
------------------------------------------
+Check connectivity from VMs to public network
+---------------------------------------------
 
 
 ID
@@ -361,12 +78,10 @@ core
 Steps
 #####
 
-    1. Setup for system tests.
+    1. Set up for system tests.
     2. Log in to Horizon Dashboard.
-    3. Create net01: net01_subnet, 192.168.111.0/24 and attach it to the router04
-    4. Launch instance VM_1 of vcenter az with image TestVM-VMDK and flavor m1.tiny in the net_04.
-    5. Launch instance VM_1 of nova az with image TestVM and flavor m1.tiny in the net_01.
-    6. Send ping from instances VM_1 and VM_2 to 8.8.8.8.
+    3. Launch two instances in default network. Instances should belong to different az (nova and vcenter).
+    4. Send ping from each instance to 8.8.8.8.
 
 
 Expected result
@@ -375,20 +90,20 @@ Expected result
 Pings should get a response.
 
 
-Check connectivity VMs to public network with floating ip.
-----------------------------------------------------------
+Check abilities to create and terminate networks on NSX
+-------------------------------------------------------
 
 
 ID
 ##
 
-nsxt_floating_ip_to_public
+nsxt_manage_networks
 
 
 Description
 ###########
 
-Verifies that public network is available via floating ip.
+Check ability to create/delete networks and attach/detach it to router.
 
 
 Complexity
@@ -400,28 +115,173 @@ core
 Steps
 #####
 
-    1. Setup for system tests.
-    2. Log in to Horizon Dashboard
-    3. Create net01: net01_subnet, 192.168.111.0/24 and attach it to the router04
-    4. Launch instance VM_1 of vcenter az with image TestVM-VMDK and flavor m1.tiny in the net_04. Associate floating ip.
-    5. Launch instance VM_1 of nova az with image TestVM and flavor m1.tiny in the net_01. Associate floating ip.
-    6. Send ping from instances VM_1 and VM_2 to 8.8.8.8.
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Create two private networks net_01 and net_02.
+    4. Launch 1 instance in each network. Instances should belong to different az (nova and vcenter).
+    5. Check that instances can't communicate with each other.
+    6. Attach (add interface) both networks to default router.
+    7. Check that instances can communicate with each other via router.
+    8. Detach (delete interface) both networks from default router.
+    9. Check that instances can't communicate with each other.
+    10. Delete created instances.
+    11. Delete created networks.
 
 
 Expected result
 ###############
 
-Pings should get a response
+No errors.
 
 
-Check abilities to create and delete security group.
-----------------------------------------------------
+Check abilities to bind port on NSX to VM, disable and enable this port
+-----------------------------------------------------------------------
 
 
 ID
 ##
 
-nsxt_create_and_delete_secgroups
+nsxt_manage_ports
+
+
+Description
+###########
+
+Verifies that system can not manipulate with port (plugin limitation).
+
+
+Complexity
+##########
+
+core
+
+
+Steps
+#####
+
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Launch two instances in default network. Instances should belong to different az (nova and vcenter).
+    4. Check that instances can communicate with each other.
+    5. Disable port attached to instance in nova az.
+    6. Check that instances can't communicate with each other.
+    7. Enable port attached to instance in nova az.
+    8. Check that instances can communicate with each other.
+    9. Disable port attached to instance in vcenter az.
+    10. Check that instances can't communicate with each other.
+    11. Enable port attached to instance in vcenter az.
+    12. Check that instances can communicate with each other.
+    13. Delete created instances.
+
+
+Expected result
+###############
+
+NSX-T plugin should be able to manage admin state of ports.
+
+
+Check abilities to assign multiple vNIC to a single VM
+------------------------------------------------------
+
+
+ID
+##
+
+nsxt_multiple_vnics
+
+
+Description
+###########
+
+Check abilities to assign multiple vNICs to a single VM.
+
+
+Complexity
+##########
+
+core
+
+
+Steps
+#####
+
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Add two private networks (net01 and net02).
+    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.101.0/24) to each network.
+       NOTE: We have a constraint about network interfaces. One of subnets should have gateway and another should not. So disable gateway on that subnet.
+    5. Launch instance VM_1 with image TestVM-VMDK and flavor m1.tiny in vcenter az.
+    6. Launch instance VM_2 with image TestVM and flavor m1.tiny in nova az.
+    7. Check abilities to assign multiple vNIC net01 and net02 to VM_1.
+    8. Check abilities to assign multiple vNIC net01 and net02 to VM_2.
+    9. Send icmp ping from VM_1 to VM_2 and vice versa.
+
+
+Expected result
+###############
+
+VM_1 and VM_2 should be attached to multiple vNIC net01 and net02. Pings should get a response.
+
+
+Check connectivity between VMs attached to different networks with a router between them
+----------------------------------------------------------------------------------------
+
+
+ID
+##
+
+nsxt_connectivity_diff_networks
+
+
+Description
+###########
+
+Test verifies that there is a connection between networks connected through the router.
+
+
+Complexity
+##########
+
+core
+
+
+Steps
+#####
+
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Add two private networks (net01 and net02).
+    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.101.0/24) to each network. Disable gateway for all subnets.
+    5. Navigate to Project -> Compute -> Instances
+    6. Launch instances VM_1 and VM_2 in the network 192.168.101.0/24 with image TestVM-VMDK and flavor m1.tiny in vcenter az. Attach default private net as a NIC 1.
+    7. Launch instances VM_3 and VM_4 in the network 192.168.101.0/24 with image TestVM and flavor m1.tiny in nova az. Attach default private net as a NIC 1.
+    8. Verify that VMs of same networks should communicate
+       between each other. Send icmp ping from VM_1 to VM_2, VM_3 to VM_4 and vice versa.
+    9. Verify that VMs of different networks should not communicate
+       between each other. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
+    10. Create Router_01, set gateway and add interface to external network.
+    11. Enable gateway on subnets. Attach private networks to router.
+    12. Verify that VMs of different networks should communicate between each other. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
+    13. Add new Router_02, set gateway and add interface to external network.
+    14. Detach net_02 from Router_01 and attach to Router_02
+    15. Assign floating IPs for all created VMs.
+    16. Verify that VMs of different networks should communicate between each other by FIPs. Send icmp ping from VM_1 to VM_3, VM_4 to VM_2 and vice versa.
+
+
+Expected result
+###############
+
+NSX-T plugin should be able to create/delete routers and assign floating ip on instances.
+
+
+Check abilities to create and delete security group
+---------------------------------------------------
+
+
+ID
+##
+
+nsxt_manage_secgroups
 
 
 Description
@@ -433,50 +293,132 @@ Verifies that creation and removing security group works fine.
 Complexity
 ##########
 
+core
+
+
+Steps
+#####
+
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Create new security group with default rules.
+    4. Add ingress rule for ICMP protocol.
+    5. Launch two instances in default network. Instances should belong to different az (nova and vcenter).
+    6. Attach created security group to instances.
+    7. Check that instances can ping each other.
+    8. Delete ingress rule for ICMP protocol.
+    9. Check that instances can't ping each other.
+    10. Delete instances.
+    11. Delete security group.
+
+
+Expected result
+###############
+
+NSX-T plugin should be able to create/delete security groups and add/delete rules.
+
+
+Check isolation between VMs in different tenants
+------------------------------------------------
+
+
+ID
+##
+
+nsxt_different_tenants
+
+
+Description
+###########
+
+Verifies isolation in different tenants.
+
+
+Complexity
+##########
+
+core
+
+
+Steps
+#####
+
+    1. Set up for system tests.
+    2. Log in to Horizon Dashboard.
+    3. Create new tenant with new user.
+    4. Activate new project.
+    5. Create network with subnet.
+    6. Create router, set gateway and add interface.
+    7. Launch instance and associate floating ip with vm.
+    8. Activate default tenant.
+    9. Launch instance (use the default network) and associate floating ip with vm.
+    10. Check that default security group allow ingress icmp traffic.
+    11. Send icmp ping between instances in different tenants via floating ip.
+
+
+Expected result
+###############
+
+Instances on different tenants can communicate between each other only via floating ip.
+
+
+Check connectivity between VMs with same ip in different tenants
+----------------------------------------------------------------
+
+
+ID
+##
+
+nsxt_same_ip_different_tenants
+
+
+Description
+###########
+
+Verifies connectivity with same IP in different tenants.
+
+
+Complexity
+##########
+
 advanced
 
 
 Steps
 #####
 
-    1. Setup for system tests.
+    1. Set up for system tests.
     2. Log in to Horizon Dashboard.
-    3. Launch instance VM_1 in the tenant network net_02 with image TestVM-VMDK and flavor m1.tiny in vcenter az.
-    4. Launch instance VM_2 in the tenant network net_02 with image TestVM and flavor m1.tiny in nova az.
-    5. Create security groups SG_1 to allow ICMP traffic.
-    6. Add Ingress rule for ICMP protocol to SG_1
-    7. Attach SG_1 to VMs
-    8. Check ping between VM_1 and VM_2 and vice verse
-    9. Create security groups SG_2 to allow TCP traffic 22 port.
-       Add Ingress rule for TCP protocol to SG_2
-    10. Attach SG_2 to VMs.
-    11. ssh from VM_1 to VM_2 and vice verse.
-    12. Delete custom rules from SG_1 and SG_2.
-    13. Check ping and ssh aren't available from VM_1 to VM_2 and vice verse.
-    14. Add Ingress rule for ICMP protocol to SG_1.
-    15. Add Ingress rule for SSH protocol to SG_2.
-    16. Check ping between VM_1 and VM_2 and vice verse.
-    17. Check ssh from VM_1 to VM_2 and vice verse.
-    18. Attach VMs to default security group.
-    19. Delete security groups.
-    20. Check ping between VM_1 and VM_2 and vice verse.
-    21. Check SSH from VM_1 to VM_2 and vice verse.
+    3. Create 2 non-admin tenants 'test_1' and 'test_2' with common admin user.
+    4. Activate project 'test_1'.
+    5. Create network 'net1' and subnet 'subnet1' with CIDR 10.0.0.0/24
+    6. Create router 'router1' and attach 'net1' to it.
+    7. Create security group 'SG_1' and add rule that allows ingress icmp traffic
+    8. Launch two instances (VM_1 and VM_2) in created network with created security group. Instances should belong to different az (nova and vcenter).
+    9. Assign floating IPs for created VMs.
+    10. Activate project 'test_2'.
+    11. Create network 'net2' and subnet 'subnet2' with CIDR 10.0.0.0/24
+    12. Create router 'router2' and attach 'net2' to it.
+    13. Create security group 'SG_2' and add rule that allows ingress icmp traffic
+    14. Launch two instances (VM_3 and VM_4) in created network with created security group. Instances should belong to different az (nova and vcenter).
+    15. Assign floating IPs for created VMs.
+    16. Verify that VMs with same ip on different tenants communicate between each other by FIPs. Send icmp ping from VM_1 to VM_3, VM_2 to VM_4 and vice versa.
 
 
 Expected result
 ###############
 
-We should be able to send ICMP and TCP traffic between VMs in different tenants.
+Pings should get a response.
 
 
-Verify that only the associated MAC and IP addresses can communicate on the logical port.
------------------------------------------------------------------------------------------
+Verify that only the associated MAC and IP addresses can communicate on the logical port
+----------------------------------------------------------------------------------------
 
 
 ID
 ##
 
-nsxt_associated_addresses_communication_on_port
+nsxt_bind_mac_ip_on_port
 
 
 Description
@@ -494,9 +436,9 @@ core
 Steps
 #####
 
-    1. Setup for system tests.
+    1. Set up for system tests.
     2. Log in to Horizon Dashboard.
-    3. Launch 2 instances in each az.
+    3. Launch two instances in default network. Instances should belong to different az (nova and vcenter).
     4. Verify that traffic can be successfully sent from and received on the MAC and IP address associated with the logical port.
     5. Configure a new IP address from the subnet not like original one on the instance associated with the logical port.
         * ifconfig eth0 down
@@ -516,14 +458,14 @@ Expected result
 Instance should not communicate with new ip and mac addresses but it should communicate with old IP.
 
 
-Check creation instance in the one group simultaneously.
---------------------------------------------------------
+Check creation instance in the one group simultaneously
+-------------------------------------------------------
 
 
 ID
 ##
 
-nsxt_create_and_delete_vms
+nsxt_batch_instance_creation
 
 
 Description
@@ -541,7 +483,7 @@ core
 Steps
 #####
 
-    1. Setup for system tests.
+    1. Set up for system tests.
     2. Navigate to Project -> Compute -> Instances
     3. Launch 5 instance VM_1 simultaneously with image TestVM-VMDK and flavor m1.tiny in vcenter az in default net_04.
     4. All instance should be created without any error.
@@ -564,7 +506,7 @@ Verify that instances could be launched on enabled compute host
 ID
 ##
 
-nsxt_disable_hosts
+nsxt_manage_compute_hosts
 
 
 Description
@@ -582,70 +524,19 @@ core
 Steps
 #####
 
-    1. Setup cluster with 3 controllers, 2 Compute nodes and cinder-vmware +
-       compute-vmware role.
-    2. Assign instances in each az.
-    3. Disable one of compute host with vCenter cluster
-       (Admin -> Hypervisors).
-    4. Create several instances in vcenter az.
-    5. Check that instances were created on enabled compute host
-       (vcenter cluster).
-    6. Disable second compute host with vCenter cluster and enable
-       first one.
-    7. Create several instances in vcenter az.
-    8. Check that instances were created on enabled compute host
-       (vcenter cluster).
-    9. Create several instances in nova az.
-    10. Check that instances were created on enabled compute host
-        (nova cluster).
+    1. Set up for system tests.
+    2. Disable one of compute host in each availability zone (vcenter and nova).
+    3. Create several instances in both az.
+    4. Check that instances were created on enabled compute hosts.
+    5. Disable second compute host and enable first one in each availability zone (vcenter and nova).
+    6. Create several instances in both az.
+    7. Check that instances were created on enabled compute hosts.
 
 
 Expected result
 ###############
 
-All instances work fine.
-
-
-Check that settings about new cluster are placed in neutron config
-------------------------------------------------------------------
-
-
-ID
-##
-
-nsxt_smoke_add_compute
-
-
-Description
-###########
-
-Adding compute-vmware role and redeploy cluster with NSX-T plugin has effect in neutron configs.
-
-
-Complexity
-##########
-
-core
-
-
-Steps
-#####
-
-    1. Upload the NSX-T plugin to master node.
-    2. Create cluster and configure NSX-T for that cluster.
-    3. Provision three controller node.
-    4. Deploy cluster.
-    5. Get configured clusters morefid(Managed Object Reference) from neutron config.
-    6. Add node with compute-vmware role.
-    7. Redeploy cluster with new node.
-    8. Get new configured clusters morefid from neutron config.
-    9. Check new cluster added in neutron config.
-
-
-Expected result
-###############
-
-Clusters are reconfigured after compute-vmware has been added.
+All instances were created on enabled compute hosts.
 
 
 Fuel create mirror and update core repos on cluster with NSX-T plugin
@@ -673,7 +564,7 @@ core
 Steps
 #####
 
-    1. Setup for system tests
+    1. Set up for system tests
     2. Log into controller node via Fuel CLI and get PIDs of services which were launched by plugin and store them:
         `ps ax | grep neutron-server`
     3. Launch the following command on the Fuel Master node:
@@ -686,6 +577,7 @@ Steps
     6. Log into controller node and check plugins services are alive and their PID are not changed.
     7. Check all nodes remain in ready status.
     8. Rerun OSTF.
+
 
 Expected result
 ###############
@@ -722,7 +614,7 @@ Steps
     1. Create cluster.
        Prepare 2 NSX managers.
     2. Configure plugin.
-    3. Set comma separtated list of NSX managers.
+    3. Set comma separated list of NSX managers.
        nsx_api_managers = 1.2.3.4,1.2.3.5
     4. Deploy cluster.
     5. Run OSTF.
@@ -771,10 +663,10 @@ Steps
          . ./openrc
          heat stack-create -f nsxt_stack.yaml teststack
 
-       Wait for status COMPLETE.
-    4. Run OSTF.
+    4. Wait for complete creation of stack.
+    5. Check that created instance is operable.
 
 
 Expected result
 ###############
-All OSTF are passed.
+All objects related to stack should be successfully created.

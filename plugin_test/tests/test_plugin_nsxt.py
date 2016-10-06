@@ -140,6 +140,51 @@ class TestNSXtSmoke(TestNSXtBase):
         self.fuel_web.run_ostf(cluster_id=cluster_id,
                                test_sets=['smoke', 'sanity'])
 
+    @test(depends_on=[nsxt_install],
+          groups=["nsxt_vcenter_smoke"])
+    @log_snapshot_after_test
+    def nsxt_vcenter_smoke(self):
+        """Deploy a cluster with NSXt Plugin.
+
+        Scenario:
+            1. Upload the plugin to master node.
+            2. Create cluster.
+            3. Provision one controller node.
+            4. Configure vcenter.
+            5. Configure NSXt for that cluster.
+            6. Deploy cluster with plugin.
+            7. Run 'smoke' OSTF.
+
+        Duration 90 min
+
+        """
+        self.show_step(1)
+        self.env.revert_snapshot('nsxt_install')
+
+        self.show_step(2)
+        cluster_id = self.fuel_web.create_cluster(
+            name=self.__class__.__name__,
+            mode=DEPLOYMENT_MODE,
+            settings=self.default.cluster_settings,
+            configure_ssl=False)
+
+        self.show_step(3)
+        self.fuel_web.update_nodes(cluster_id, {'slave-01': ['controller']})
+
+        self.reconfigure_cluster_interfaces(cluster_id)
+
+        self.show_step(4)
+        self.fuel_web.vcenter_configure(cluster_id)
+
+        self.show_step(5)
+        self.enable_plugin(cluster_id)
+
+        self.show_step(6)
+        self.fuel_web.deploy_cluster_wait(cluster_id)
+
+        self.show_step(7)
+        self.fuel_web.run_ostf(cluster_id=cluster_id, test_sets=['smoke'])
+
 
 @test(groups=["nsxt_plugin", "nsxt_bvt_scenarios"])
 class TestNSXtBVT(TestNSXtBase):
