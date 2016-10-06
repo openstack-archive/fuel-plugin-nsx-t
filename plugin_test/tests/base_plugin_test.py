@@ -31,6 +31,17 @@ class TestNSXtBase(TestBasic):
         super(TestNSXtBase, self).__init__()
         self.default = settings
 
+    def get_configured_clusters(self, node_ip):
+        """Get configured vcenter clusters moref id on controller.
+        :param node_ip: type string, ip of node
+        """
+
+        cmd = r"sed -rn 's/^\s*cluster_moid\s*=\s*([^ ]+)\s*$/\1/p' " \
+              "/etc/neutron/plugin.ini"
+        clusters_id = self.ssh_manager.check_call(ip=node_ip,
+                                                  cmd=cmd).stdout
+        return (clusters_id[-1]).rstrip().split(',')
+
     def install_nsxt_plugin(self):
         """Download and install NSX-T plugin on master node.
 
