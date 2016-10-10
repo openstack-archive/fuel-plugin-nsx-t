@@ -233,6 +233,7 @@ CheckVariables() {
     export DISABLE_SSL="true"
   fi
   if [ -z "${VCENTER_USE}" ]; then
+    echo 'VCENTER_USE is not set! Set it as True'
     export VCENTER_USE="true"
   fi
   if [ -z "${VCENTER_IP}" ]; then
