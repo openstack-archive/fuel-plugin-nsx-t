@@ -196,7 +196,7 @@ nsxt_smoke
 Description
 ###########
 
-Check deployment of environment with NSX-T plugin and one controller.
+Check deployment of non-ha environment with NSX-T plugin and one compute node.
 
 
 Complexity
@@ -216,12 +216,12 @@ Steps
         * Additional services: default
     3. Add nodes with following roles:
         * Controller
+        * Compute
     4. Configure interfaces on nodes.
     5. Configure network settings.
     6. Enable and configure NSX-T plugin.
-    7. Configure VMware vCenter Settings. Add 1 vSphere cluster and configure Nova Compute instances on controllers.
-    8. Deploy cluster.
-    9. Run OSTF.
+    7. Deploy cluster.
+    8. Run OSTF.
 
 
 Expected result
@@ -243,7 +243,7 @@ nsxt_bvt
 Description
 ###########
 
-Check deployment of environment with NSX-T plugin, 3 Controllers, 1 Compute, 3 CephOSD, cinder-vware + compute-vmware roles.
+Check deployment of ha environment with NSX-T plugin and vCenter.
 
 
 Complexity
@@ -259,17 +259,14 @@ Steps
     2. Create a new environment with following parameters:
         * Compute: KVM, QEMU with vCenter
         * Networking: Neutron with NSX-T plugin
-        * Storage: Ceph RBD for images (Glance)
+        * Storage: default
         * Additional services: default
     3. Add nodes with following roles:
         * Controller
         * Controller
         * Controller
-        * CephOSD
-        * CephOSD
-        * CephOSD
         * Compute-vmware, cinder-vmware
-        * Compute
+        * Compute, cinder
     4. Configure interfaces on nodes.
     5. Configure network settings.
     6. Enable and configure NSX-T plugin.
