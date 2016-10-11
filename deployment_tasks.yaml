@@ -110,7 +110,7 @@
     - openstack-network-server-config
   parameters:
     puppet_manifest: puppet/manifests/install-nsx-plugin.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 60
 
 - id: nsx-t-configure-plugin
