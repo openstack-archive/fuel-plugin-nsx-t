@@ -11,7 +11,7 @@
     - globals
   parameters:
     puppet_manifest: puppet/manifests/hiera-override.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 120
 
 - id: nsx-t-compute-vmware-nova-config
@@ -26,7 +26,7 @@
     - top-role-compute
   parameters:
     puppet_manifest: puppet/manifests/compute-vmware-nova-config.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 180
 
 - id: nsx-t-compute-nova-config
@@ -41,7 +41,7 @@
     - openstack-network-compute-nova
   parameters:
     puppet_manifest: puppet/manifests/compute-nova-config.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 180
 
 - id: nsx-t-gem-install
@@ -58,7 +58,7 @@
     - setup_repositories
   parameters:
     puppet_manifest: puppet/manifests/gem-install.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 - id: nsx-t-create-repo
@@ -74,7 +74,7 @@
     - nsx-t-gem-install
   parameters:
     puppet_manifest: puppet/manifests/create-repo.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 600
     strategy:
       type: one_by_one
@@ -95,7 +95,7 @@
     - nsx-t-create-repo
   parameters:
     puppet_manifest: puppet/manifests/install-nsx-packages.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 - id: nsx-t-install-plugin
@@ -110,7 +110,7 @@
     - openstack-network-server-config
   parameters:
     puppet_manifest: puppet/manifests/install-nsx-plugin.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 60
 
 - id: nsx-t-configure-plugin
@@ -125,7 +125,7 @@
     - nsx-t-install-plugin
   parameters:
     puppet_manifest: puppet/manifests/configure-plugin.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 60
 
 - id: nsx-t-neutron-server-stop
@@ -140,7 +140,7 @@
     - openstack-network-server-config
   parameters:
     puppet_manifest: puppet/manifests/neutron-server-stop.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 60
 
 - id: nsx-t-primary-neutron-server-start
@@ -157,7 +157,7 @@
     - name: nsx-t-neutron-server-stop
   parameters:
     puppet_manifest: puppet/manifests/neutron-server-start.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 - id: nsx-t-reg-node-on-management-plane
@@ -175,7 +175,7 @@
     - nsx-t-install-packages
   parameters:
     puppet_manifest: puppet/manifests/reg-node-on-management-plane.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 - id: nsx-t-reg-node-as-transport-node
@@ -193,7 +193,7 @@
     - nsx-t-reg-node-on-management-plane
   parameters:
     puppet_manifest: puppet/manifests/reg-node-as-transport-node.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 - id: nsx-t-neutron-server-start
@@ -211,7 +211,7 @@
     - name: nsx-t-primary-neutron-server-start
   parameters:
     puppet_manifest: puppet/manifests/neutron-server-start.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 120
     strategy:
       type: one_by_one
@@ -229,7 +229,7 @@
     - name: nsx-t-configure-agents-dhcp
   parameters:
     puppet_manifest: puppet/manifests/configure-agents-dhcp.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 180
 
 - id: nsx-t-configure-agents-dhcp
@@ -243,7 +243,7 @@
     - openstack-network-agents-dhcp
   parameters:
     puppet_manifest: puppet/manifests/configure-agents-dhcp.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 120
 
 - id: nsx-t-neutron-network-create
@@ -261,7 +261,7 @@
     yaql_exp: "changed($.quantum)"
   parameters:
     puppet_manifest: puppet/manifests/neutron-network-create.pp
-    puppet_modules: puppet/modules
+    puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 300
 
 # skipped tasks
