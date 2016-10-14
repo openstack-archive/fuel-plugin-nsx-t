@@ -144,7 +144,7 @@ class TestNSXtSmoke(TestNSXtBase):
 class TestNSXtBVT(TestNSXtBase):
     """NSX-t BVT scenarios"""
 
-    @test(depends_on=[SetupEnvironment.prepare_slaves_9],
+    @test(depends_on=[SetupEnvironment.prepare_slaves_5],
           groups=["nsxt_bvt"])
     @log_snapshot_after_test
     def nsxt_bvt(self):
@@ -167,7 +167,7 @@ class TestNSXtBVT(TestNSXtBase):
         Duration 3 hours
 
         """
-        self.env.revert_snapshot("ready_with_9_slaves")
+        self.env.revert_snapshot("ready_with_5_slaves")
 
         self.show_step(1)
         self.install_nsxt_plugin()
