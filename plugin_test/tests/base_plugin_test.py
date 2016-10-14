@@ -90,9 +90,3 @@ class TestNSXtBase(TestBasic):
             expected=[1 if failover else 0],
             raise_on_err=not failover
         )
-
-        output = self.ssh_manager.check_call(
-            ip=self.ssh_manager.admin_ip,
-            command='fuel2 plugins list -f value -c name'
-        ).stdout[-1].split(' ')
-        assert_true(plugin_name in output != failover, msg)
