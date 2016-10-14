@@ -71,9 +71,8 @@ class TestNSXtSmoke(TestNSXtBase):
 
         Scenario:
             1. Revert to snapshot nsxt_install
-            2. Remove NSX-T plugin.
-            3. Run command 'fuel plugins' to ensure the NSX-T plugin has
-               been removed.
+            2. Remove NSX-T plugin and run command 'fuel plugins' to ensure
+               the NSX-T plugin has been removed.
 
         Duration: 5 min
         """
@@ -81,15 +80,6 @@ class TestNSXtSmoke(TestNSXtBase):
         self.env.revert_snapshot("nsxt_install")
 
         self.show_step(2)
-        cmd = 'fuel plugins --remove {0}=={1}'.format(
-            self.default.PLUGIN_NAME, self.default.NSXT_PLUGIN_VERSION)
-
-        self.ssh_manager.execute_on_remote(
-            ip=self.ssh_manager.admin_ip,
-            cmd=cmd,
-            err_msg='Can not remove plugin.')
-
-        self.show_step(3)
         self.delete_nsxt_plugin()
 
     @test(depends_on=[nsxt_install],
