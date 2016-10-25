@@ -15,14 +15,17 @@ under the License.
 
 import os
 
+from devops.helpers.ssh_client import SSHAuth
 from proboscis.asserts import assert_true
 
 from fuelweb_test import logger
 from fuelweb_test.helpers import utils
 from fuelweb_test.helpers.utils import pretty_log
 from fuelweb_test.tests.base_test_case import TestBasic
+from fuelweb_test.settings import SSH_IMAGE_CREDENTIALS
 from helpers import settings
 
+cirros_auth = SSHAuth(**SSH_IMAGE_CREDENTIALS)
 
 class TestNSXtBase(TestBasic):
     """Base class for NSX-T plugin tests"""
@@ -30,6 +33,8 @@ class TestNSXtBase(TestBasic):
     def __init__(self):
         super(TestNSXtBase, self).__init__()
         self.default = settings
+        self.vcenter_az = 'vcenter'
+        self.vmware_image = 'TestVM-VMDK'
 
     def install_nsxt_plugin(self):
         """Download and install NSX-T plugin on master node.
@@ -90,3 +95,38 @@ class TestNSXtBase(TestBasic):
             expected=[1 if failover else 0],
             raise_on_err=not failover
         )
+
+    def _get_controller_with_vip(self):
+        """Return name of controller with VIPs."""
+        for node in self.env.d_env.nodes().slaves:
+            ng_node = self.fuel_web.get_nailgun_node_by_devops_node(node)
+            if ng_node['online'] and 'controller' in ng_node['roles']:
+                hosts_vip = self.fuel_web.get_pacemaker_resource_location(
+                    ng_node['devops_name'], 'vip__management')
+                logger.info('Now primary controller is '
+                            '{}'.format(hosts_vip[0].name))
+                return hosts_vip[0].name
+        return True
+
+    def ping_from_instance(self, src_floating_ip, dst_ip, primary,
+                           size=56, count=1):
+        """Verify ping between instances.
+
+        :param src_floating_ip: floating ip address of instance
+        :param dst_ip: destination ip address
+        :param primary: name of the primary controller
+        :param size: number of data bytes to be sent
+        :param count: number of packets to be sent
+        """
+
+        with self.fuel_web.get_ssh_for_node(primary) as ssh:
+            command = "ping -s {0} -c {1} {2}".format(size, count,
+                                                      dst_ip)
+            ping = ssh.execute_through_host(
+                hostname=src_floating_ip,
+                cmd=command,
+                auth=cirros_auth
+            )
+
+            logger.info("Ping result is {}".format(ping['stdout_str']))
+            return 0 == ping['exit_code']
