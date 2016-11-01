@@ -34,8 +34,6 @@ Steps
         * Storage: default
     3. Add nodes with following roles:
         * Controller
-        * Controller
-        * Controller
         * Compute
     4. Configure interfaces on nodes.
     5. Configure network settings.
