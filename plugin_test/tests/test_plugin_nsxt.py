@@ -95,7 +95,7 @@ class TestNSXtSmoke(TestNSXtBase):
           groups=["nsxt_smoke"])
     @log_snapshot_after_test
     def nsxt_smoke(self):
-        """Deploy a cluster with NSXt Plugin.
+        """Deploy cluster with NSXt Plugin and compute node.
 
         Scenario:
             1. Upload the plugin to master node.
@@ -147,7 +147,7 @@ class TestNSXtBVT(TestNSXtBase):
           groups=["nsxt_bvt"])
     @log_snapshot_after_test
     def nsxt_bvt(self):
-        """Deploy cluster with plugin and vmware datastore backend.
+        """Deploy ha cluster with plugin and KVM + vCenter.
 
         Scenario:
             1. Upload plugins to the master node.
@@ -157,7 +157,7 @@ class TestNSXtBVT(TestNSXtBase):
                 * controller
                 * controller
                 * compute-vmware + cinder-vmware
-                * compute
+                * compute + cinder
             4. Configure vcenter.
             5. Configure NSXt for that cluster.
             6. Deploy cluster.

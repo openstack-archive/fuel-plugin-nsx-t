@@ -163,8 +163,8 @@ class TestNSXtSystem(TestNSXtBase):
         default_net = os_conn.nova.networks.find(
             label=self.default.PRIVATE_NET)
 
-        vm1_fip = os_conn.assign_floating_ip(vm1)
-        vm2_fip = os_conn.assign_floating_ip(vm2)
+        vm1_fip = os_conn.assign_floating_ip(vm1).ip
+        vm2_fip = os_conn.assign_floating_ip(vm2).ip
 
         vm1_ip = os_conn.get_nova_instance_ip(vm1, net_name=default_net)
         vm2_ip = os_conn.get_nova_instance_ip(vm2, net_name=default_net)
