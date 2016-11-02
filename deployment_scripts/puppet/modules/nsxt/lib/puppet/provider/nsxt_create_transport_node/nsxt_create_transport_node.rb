@@ -36,7 +36,11 @@ Puppet::Type.type(:nsxt_create_transport_node).provide(:nsxt_create_transport_no
       begin
         response = post_nsxt_api(api_url, @resource[:username], @resource[:password], request.to_json, @resource[:ca_file])
       rescue => error
-        raise Puppet::Error,("\nFailed to create the transport node: #{error.message}\n")
+        if error.message =~ /^400 Bad Request/ and error.response =~ /^There already exists a TransportNode/
+          debug("Node already registered as transport node")
+        else
+          raise Puppet::Error,("\nFailed to create the transport node: #{error.message}\n")
+        end
       end
       if not response.to_s.empty?
         # 12 retry x 15 sleep time = 3 minutes timeout
