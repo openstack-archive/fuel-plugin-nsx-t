@@ -298,7 +298,7 @@ class TestNSXtScale(TestNSXtBase):
         self.reconfigure_cluster_interfaces(cluster_id)
 
         self.show_step(5)  # Enable plugin and configure network settings
-        self.enable_plugin(self.fuel_web, cluster_id)
+        self.enable_plugin(cluster_id)
 
         # Configure VMware settings. 1 cluster, 1 Nova Compute: compute-vmware
         self.show_step(6)
