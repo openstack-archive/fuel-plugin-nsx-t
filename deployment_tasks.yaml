@@ -172,7 +172,7 @@
     - primary-openstack-network-agents-dhcp
     - openstack-network-end
   requires:
-    - nsx-t-install-packages
+    - nsx-t-configure-plugin
   parameters:
     puppet_manifest: puppet/manifests/reg-node-on-management-plane.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
