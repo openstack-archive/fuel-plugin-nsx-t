@@ -45,8 +45,8 @@ NSXT_USER = os.environ.get('NSXT_USER')
 assigned_networks = {
     iface_alias('eth0'): ['fuelweb_admin', 'private'],
     iface_alias('eth1'): ['public'],
-    iface_alias('eth2'): ['storage'],
-    iface_alias('eth4'): ['management']
+    iface_alias('eth2'): ['management'],
+    iface_alias('eth4'): ['storage']
 }
 
 cluster_settings = {
