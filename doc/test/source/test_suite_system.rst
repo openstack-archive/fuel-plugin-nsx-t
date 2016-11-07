@@ -117,12 +117,12 @@ Steps
 
     1. Set up for system tests.
     2. Log in to Horizon Dashboard.
-    3. Create two private networks net_01 and net_02.
-    4. Launch 1 instance in each network. Instances should belong to different az (nova and vcenter).
-    5. Check that instances can't communicate with each other.
-    6. Attach (add interface) both networks to default router.
+    3. Create private networks net_01 and net_02 with subnets.
+    4. Launch 1 instance on each network. Instances should belong to different az (nova and vcenter).
+    5. Attach (add interface) net_01 to default router. Check that instances can't communicate with each other.
+    6. Attach net_02 to default router.
     7. Check that instances can communicate with each other via router.
-    8. Detach (delete interface) both networks from default router.
+    8. Detach (delete interface) net_01 from default router.
     9. Check that instances can't communicate with each other.
     10. Delete created instances.
     11. Delete created networks.

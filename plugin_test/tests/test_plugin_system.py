@@ -206,6 +206,114 @@ class TestNSXtSystem(TestNSXtBase):
         vm2.delete()
 
     @test(depends_on=[nsxt_setup_system],
+          groups=['nsxt_manage_networks'])
+    @log_snapshot_after_test
+    def nsxt_manage_networks(self):
+        """Check abilities to create and terminate networks on NSX.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Create private networks net_01 and net_02 with subnets.
+            4. Launch 1 instance on each network. Instances should belong to
+               different az (nova and vcenter).
+            5. Attach (add interface) net_01 to default router. Check that
+               instances can't communicate with each other.
+            6. Attach net_02 to default router.
+            7. Check that instances can communicate with each other via router.
+            8. Detach (delete interface) net_01 from default router.
+            9. Check that instances can't communicate with each other.
+            10. Delete created instances.
+            11. Delete created networks.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+
+        os_conn = os_actions.OpenStackActions(
+            self.fuel_web.get_public_vip(cluster_id),
+            SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        # Create private networks net_01 and net_02 with subnets
+        self.show_step(3)
+        net1 = self._create_net(os_conn, 'net_01')
+        subnet1 = os_conn.create_subnet(subnet_name=net1['name'],
+                                        network_id=net1['id'],
+                                        cidr='192.168.1.0/24',
+                                        ip_version=4)
+
+        net2 = self._create_net(os_conn, 'net_02')
+        subnet2 = os_conn.create_subnet(subnet_name=net2['name'],
+                                        network_id=net2['id'],
+                                        cidr='192.168.2.0/24',
+                                        ip_version=4)
+
+        # Launch 2 instances on each network. Instances should belong to
+        # different az (nova and vcenter)
+        self.show_step(4)
+        sg = os_conn.create_sec_group_for_ssh().name
+        vm1 = os_help.create_instance(os_conn, net=net1, sg_names=[sg])
+        vm2 = os_help.create_instance(os_conn, net=net2, sg_names=[sg],
+                                      az='vcenter')
+
+        vm1_ip = os_conn.get_nova_instance_ip(vm1, net_name=net1['name'])
+        vm2_ip = os_conn.get_nova_instance_ip(vm2, net_name=net2['name'])
+
+        # Attach (add interface) net_01 to default router. Check that
+        # instances can't communicate with each other.
+        self.show_step(5)
+        router_id = os_conn.get_router(os_conn.get_network(
+            self.default.ADMIN_NET))['id']
+
+        os_conn.add_router_interface(router_id=router_id,
+                                     subnet_id=subnet1['id'])
+        vm1_fip = os_conn.assign_floating_ip(vm1).ip
+
+        os_help.check_connection_vms({vm1_fip: [vm2_ip]},
+                                     result_of_command=1)
+
+        self.show_step(6)  # Attach net_02 to default router.
+        os_conn.add_router_interface(router_id=router_id,
+                                     subnet_id=subnet2['id'])
+        vm2_fip = os_conn.assign_floating_ip(vm2).ip
+
+        # Check that instances can communicate with each other via router
+        self.show_step(7)
+        os_help.check_connection_vms({vm2_fip: [vm1_ip]})
+
+        # Detach (delete interface) net_01 from default router.
+        self.show_step(8)
+        vm1.remove_floating_ip(vm1_fip)
+        os_conn.neutron.remove_interface_router(router_id,
+                                                {"router_id": router_id,
+                                                 "subnet_id": subnet1['id']})
+
+        # Check that instances can't communicate with each other
+        self.show_step(9)
+        os_help.check_connection_vms({vm2_fip: [vm1_ip]}, result_of_command=1)
+
+        self.show_step(10)  # Delete created instances
+        vm2.remove_floating_ip(vm2_fip)
+        os_conn.neutron.remove_interface_router(router_id,
+                                                {"router_id": router_id,
+                                                 "subnet_id": subnet2['id']})
+
+        os_conn.delete_instance(vm1)
+        os_conn.delete_instance(vm2)
+        os_conn.verify_srv_deleted(vm1)
+        os_conn.verify_srv_deleted(vm2)
+
+        self.show_step(11)  # Delete created networks
+        os_conn.neutron.delete_network(net1['id'])
+        os_conn.neutron.delete_network(net2['id'])
+
+    @test(depends_on=[nsxt_setup_system],
           groups=['nsxt_hot'])
     @log_snapshot_after_test
     def nsxt_hot(self):
