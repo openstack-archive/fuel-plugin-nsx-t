@@ -94,8 +94,7 @@ def check_connection_vms(ip_pair, command='pingv4', result_of_command=0,
 
     msg = 'Command "{0}", Actual exit code is NOT {1}'
     for ip_from in ip_pair:
-        with get_ssh_connection(ip_from, instance_creds[0],
-                                instance_creds[1]) as ssh:
+        with get_ssh_connection(ip_from, *instance_creds, timeout=100) as ssh:
             for ip_to in ip_pair[ip_from]:
                 logger.info('Check connection from {0} to {1}'.format(
                     ip_from, ip_to))
@@ -243,8 +242,7 @@ def remote_execute_command(instance1_ip, instance2_ip, command, wait=30):
         transport.start_client()
 
         logger.info("Passing authentication to VM")
-        transport.auth_password(
-            instance_creds[0], instance_creds[1])
+        transport.auth_password(*instance_creds)
         channel = transport.open_session()
         channel.get_pty()
         channel.fileno()
