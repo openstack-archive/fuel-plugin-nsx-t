@@ -206,6 +206,448 @@ class TestNSXtSystem(TestNSXtBase):
         vm2.delete()
 
     @test(depends_on=[nsxt_setup_system],
+          groups=['nsxt_manage_networks'])
+    @log_snapshot_after_test
+    def nsxt_manage_networks(self):
+        """Check abilities to create and terminate networks on NSX.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Create private networks net_01 and net_02 with subnets.
+            4. Launch 1 instance on each network. Instances should belong to
+               different az (nova and vcenter).
+            5. Attach (add interface) net_01 to default router. Check that
+               instances can't communicate with each other.
+            6. Attach net_02 to default router.
+            7. Check that instances can communicate with each other via router.
+            8. Detach (delete interface) net_01 from default router.
+            9. Check that instances can't communicate with each other.
+            10. Delete created instances.
+            11. Delete created networks.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+
+        os_conn = os_actions.OpenStackActions(
+            self.fuel_web.get_public_vip(cluster_id),
+            SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        # Create private networks net_01 and net_02 with subnets
+        self.show_step(3)
+        net1 = self._create_net(os_conn, 'net_01')
+        subnet1 = os_conn.create_subnet(subnet_name=net1['name'],
+                                        network_id=net1['id'],
+                                        cidr='192.168.1.0/24',
+                                        ip_version=4)
+
+        net2 = self._create_net(os_conn, 'net_02')
+        subnet2 = os_conn.create_subnet(subnet_name=net2['name'],
+                                        network_id=net2['id'],
+                                        cidr='192.168.2.0/24',
+                                        ip_version=4)
+
+        # Launch 2 instances on each network. Instances should belong to
+        # different az (nova and vcenter)
+        self.show_step(4)
+        sg = os_conn.create_sec_group_for_ssh().name
+        vm1 = os_help.create_instance(os_conn, net=net1, sg_names=[sg])
+        vm2 = os_help.create_instance(os_conn, net=net2, sg_names=[sg],
+                                      az='vcenter')
+
+        vm1_ip = os_conn.get_nova_instance_ip(vm1, net_name=net1['name'])
+        vm2_ip = os_conn.get_nova_instance_ip(vm2, net_name=net2['name'])
+
+        # Attach (add interface) net_01 to default router. Check that
+        # instances can't communicate with each other.
+        self.show_step(5)
+        router_id = os_conn.get_router(os_conn.get_network(
+            self.default.ADMIN_NET))['id']
+
+        os_conn.add_router_interface(router_id=router_id,
+                                     subnet_id=subnet1['id'])
+        vm1_fip = os_conn.assign_floating_ip(vm1).ip
+
+        os_help.check_connection_vms({vm1_fip: [vm2_ip]},
+                                     result_of_command=1)
+
+        self.show_step(6)  # Attach net_02 to default router.
+        os_conn.add_router_interface(router_id=router_id,
+                                     subnet_id=subnet2['id'])
+        vm2_fip = os_conn.assign_floating_ip(vm2).ip
+
+        # Check that instances can communicate with each other via router
+        self.show_step(7)
+        os_help.check_connection_vms({vm2_fip: [vm1_ip]})
+
+        # Detach (delete interface) net_01 from default router.
+        self.show_step(8)
+        vm1.remove_floating_ip(vm1_fip)
+        os_help.remove_router_interface(os_conn, router_id, subnet1['id'])
+
+        # Check that instances can't communicate with each other
+        self.show_step(9)
+        os_help.check_connection_vms({vm2_fip: [vm1_ip]}, result_of_command=1)
+
+        self.show_step(10)  # Delete created instances
+        vm2.remove_floating_ip(vm2_fip)
+        os_help.remove_router_interface(os_conn, router_id, subnet2['id'])
+
+        os_conn.delete_instance(vm1)
+        os_conn.delete_instance(vm2)
+        os_conn.verify_srv_deleted(vm1)
+        os_conn.verify_srv_deleted(vm2)
+
+        self.show_step(11)  # Delete created networks
+        os_conn.neutron.delete_network(net1['id'])
+        os_conn.neutron.delete_network(net2['id'])
+
+    @test(depends_on=[nsxt_setup_system],
+          groups=['nsxt_public_network_availability'])
+    @log_snapshot_after_test
+    def nsxt_public_network_availability(self):
+        """Check connectivity from VMs to public network.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Launch two instances in default network. Instances should belong
+               to different az (nova and vcenter).
+            4. Send ping from each instance to 8.8.8.8.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+
+        os_ip = self.fuel_web.get_public_vip(cluster_id)
+        os_conn = os_actions.OpenStackActions(
+            os_ip, SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        # Launch two instances in default network. Instances should belong to
+        # different az (nova and vcenter)
+        self.show_step(3)
+        sg = os_conn.create_sec_group_for_ssh().name
+        vm1 = os_help.create_instance(os_conn, sg_names=[sg], az='vcenter')
+        vm2 = os_help.create_instance(os_conn, sg_names=[sg])
+
+        # Send ping from each instance to 8.8.8.8
+        self.show_step(4)
+        vm1_fip, vm2_fip = \
+            os_help.create_and_assign_floating_ips(os_conn, [vm1, vm2])
+
+        os_help.check_connection_vms({vm1_fip: ['8.8.8.8'],
+                                      vm2_fip: ['8.8.8.8']})
+
+    @test(depends_on=[nsxt_setup_system],
+          groups=['nsxt_connectivity_diff_networks'])
+    @log_snapshot_after_test
+    def nsxt_connectivity_diff_networks(self):
+        """Check connection between VMs from different nets through the router.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Add two private networks (net01 and net02).
+            4. Add one subnet  to each network
+                 net01_subnet01: 192.168.101.0/24,
+                 net02_subnet01, 192.168.102.0/24.
+               Disable gateway for both subnets.
+            5. Launch 1 instance in each network. Instances should belong to
+               different az (nova and vcenter).
+            6. Create new router (Router_01), set gateway and add interface
+               to external network.
+            7. Enable gateway on subnets. Attach private networks to created
+               router.
+            8. Verify that VMs of different networks communicate between
+               each other.
+            9. Add one more router (Router_02), set gateway and add interface
+               to external network.
+            10. Detach net_02 from Router_01 and attach it to Router_02.
+            11. Assign floating IPs for all created VMs.
+            12. Check that default security group allows the ICMP.
+            13. Verify that VMs of different networks communicate between
+                each other by FIPs.
+            14. Delete instances.
+            15. Detach created networks from routers.
+            16. Delete created networks.
+            17. Delete created routers.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+        os_conn = os_actions.OpenStackActions(
+            self.fuel_web.get_public_vip(cluster_id),
+            SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        self.show_step(3)  # Add two private networks (net01 and net02)
+        net1 = self._create_net(os_conn, 'net_01')
+        net2 = self._create_net(os_conn, 'net_02')
+
+        # Add one subnet to each network: net01_subnet01 (192.168.101.0/24) and
+        # net02_subnet01 (192.168.102.0/24). Disable gateway for both subnets
+        self.show_step(4)
+        subnet1 = os_conn.create_subnet(
+            subnet_name='net01_subnet01',
+            network_id=net1['id'],
+            cidr='192.168.101.0/24',
+            allocation_pools=[
+                {'start': '192.168.101.2','end': '192.168.101.254'}
+            ],
+            ip_version=4,
+            gateway_ip=None)
+
+        subnet2 = os_conn.create_subnet(
+            subnet_name='net02_subnet01',
+            network_id=net2['id'],
+            cidr='192.168.102.0/24',
+            allocation_pools=[
+                {'start': '192.168.102.2', 'end': '192.168.102.254'}
+            ],
+            ip_version=4,
+            gateway_ip=None)
+
+        # Launch 1 instance in each network. Instances should belong to
+        # different az (nova and vcenter)
+        self.show_step(5)
+        sg = os_conn.create_sec_group_for_ssh().name
+        vm1 = os_help.create_instance(os_conn, net=net1, sg_names=[sg],
+                                      az='vcenter')
+        vm2 = os_help.create_instance(os_conn, net=net2, sg_names=[sg])
+
+        # Create new router (Router_01), set gateway and add interface to
+        # external network
+        self.show_step(6)
+        tenant = os_conn.get_tenant(SERVTEST_TENANT)
+        rout1 = os_conn.create_router('Router_01', tenant)
+
+        # Enable gateway on subnets. Attach private networks to created router
+        self.show_step(7)
+        os_help.add_gateway_ip(os_conn, subnet1['id'], '192.168.101.1')
+        os_conn.add_router_interface(router_id=rout1['id'],
+                                     subnet_id=subnet1['id'])
+
+        os_help.add_gateway_ip(os_conn, subnet2['id'], '192.168.102.1')
+        os_conn.add_router_interface(router_id=rout1['id'],
+                                     subnet_id=subnet2['id'])
+
+        # Verify that VMs of different networks communicate between each other
+        self.show_step(8)
+        vm1_ip = os_conn.get_nova_instance_ip(vm1, net_name=net1['name'])
+        vm2_ip = os_conn.get_nova_instance_ip(vm2, net_name=net2['name'])
+
+        vm1_fip, vm2_fip = \
+            os_help.create_and_assign_floating_ips(os_conn, [vm1, vm2])
+
+        os_help.check_connection_vms({vm1_fip: [vm2_ip], vm2_fip: [vm1_ip]})
+
+        # Add one more router (Router_02), set gateway and add interface
+        # to external network
+        self.show_step(9)
+        rout2 = os_conn.create_router('Router_02', tenant)
+
+        # Detach net_02 from Router_01 and attach it to Router_02
+        self.show_step(10)
+        vm2.remove_floating_ip(vm2_fip)
+        os_help.remove_router_interface(os_conn, rout1['id'], subnet2['id'])
+        os_conn.add_router_interface(router_id=rout2['id'],
+                                     subnet_id=subnet2['id'])
+
+        self.show_step(11)  # Assign floating IPs for all created VMs
+        vm2_fip = os_help.create_and_assign_floating_ips(os_conn, [vm2])[0]
+
+        self.show_step(12)  # Check that default security group allow the ICMP
+
+        # Verify that VMs of different networks communicate between each
+        # other by FIPs
+        self.show_step(13)
+        os_help.check_connection_vms({vm1_fip: [vm2_fip], vm2_fip: [vm1_fip]})
+
+        self.show_step(14)  # Delete instances
+        vm1.remove_floating_ip(vm1_fip)
+        vm2.remove_floating_ip(vm2_fip)
+        os_conn.delete_instance(vm1)
+        os_conn.delete_instance(vm2)
+
+        self.show_step(15)  # Detach created networks from routers
+        os_help.remove_router_interface(os_conn, rout1['id'], subnet1['id'])
+        os_help.remove_router_interface(os_conn, rout2['id'], subnet2['id'])
+
+        os_conn.verify_srv_deleted(vm2)
+        os_conn.verify_srv_deleted(vm1)
+
+        self.show_step(16)  # Delete created networks
+        os_conn.neutron.delete_network(net1['id'])
+        os_conn.neutron.delete_network(net2['id'])
+
+        self.show_step(17)  # Delete created routers
+        os_conn.neutron.delete_router(rout1['id'])
+        os_conn.neutron.delete_router(rout2['id'])
+
+    @test(  # depends_on=[nsxt_setup_system],
+        groups=['nsxt_batch_instance_creation'])
+    # @log_snapshot_after_test
+    def nsxt_batch_instance_creation(self):
+        """Check instance creation in the one group simultaneously.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Launch 5 instances VM_1 simultaneously with image TestVM-VMDK
+               and flavor m1.tiny in vcenter az in default net.
+            4. Launch 5 instances VM_2 simultaneously with image TestVM and
+               flavor m1.tiny in nova az in default net.
+            5. Check connection between VMs (ping, ssh).
+            6. Delete all VMs simultaneously.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        # self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+        os_conn = os_actions.OpenStackActions(
+            self.fuel_web.get_public_vip(cluster_id),
+            SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        # Launch 5 instances VM_1 simultaneously. Image: TestVM-VMDK,
+        # flavor: m1.tiny, az: vcenter, net: default
+        self.show_step(3)
+        sg = os_conn.create_sec_group_for_ssh().name
+        net_name = self.default.PRIVATE_NET
+        net = os_conn.get_network(net_name)
+        flavors = os_conn.nova.flavors.list()
+        micro_flavor = [f for f in flavors if f.name == 'm1.micro'][0]
+
+        image = os_conn.get_image(os_help.zone_image_maps['vcenter'])
+        os_conn.nova.servers.create(
+            name='VM_1',
+            image=image,
+            flavor=micro_flavor,
+            min_count=5,
+            availability_zone='vcenter',
+            nics=[{'net-id': net['id']}],
+            security_groups=[sg])
+        os_help.verify_instance_state(os_conn)
+
+        # Launch 5 instances VM_2 simultaneously. Image TestVM,
+        # flavor: m1.tiny, az: nova, net: default
+        self.show_step(4)
+        image = os_conn.get_image(os_help.zone_image_maps['nova'])
+        os_conn.nova.servers.create(
+            name='VM_2',
+            image=image,
+            flavor=micro_flavor,
+            min_count=5,
+            availability_zone='nova',
+            nics=[{'net-id': net['id']}],
+            security_groups=[sg])
+        os_help.verify_instance_state(os_conn)
+
+        self.show_step(5)  # Check connection between VMs (ping, ssh)
+        instances = os_conn.nova.servers.list()
+        fips = os_help.create_and_assign_floating_ips(os_conn, instances)
+
+        ips = [os_conn.get_nova_instance_ip(i, net_name=net_name)
+               for i in instances]
+
+        os_help.check_connection_vms({fip: ips for fip in fips})
+        os_help.ping_each_other(fips)
+
+        self.show_step(6)  # Delete all VMs simultaneously
+        for instance in instances:
+            instance.delete()
+        for instance in instances:
+            os_conn.verify_srv_deleted(instance)
+
+    @test(depends_on=[nsxt_setup_system],
+          groups=['nsxt_batch_instance_creation'])
+    @log_snapshot_after_test
+    def nsxt_batch_instance_creation(self):
+        """Check instance creation in the one group simultaneously.
+
+        Scenario:
+            1. Set up for system tests.
+            2. Get access to OpenStack.
+            3. Launch 5 instances VM_1 simultaneously in vcenter az in
+               default net. Verify that creation was successful.
+            4. Launch 5 instances VM_2 simultaneously in nova az in default
+               net. Verify that creation was successful.
+            5. Delete all VMs simultaneously.
+
+        Duration: 30 min
+        """
+        self.show_step(1)  # Set up for system tests
+        self.env.revert_snapshot('nsxt_setup_system')
+
+        self.show_step(2)  # Get access to OpenStack
+        cluster_id = self.fuel_web.get_last_created_cluster()
+        os_conn = os_actions.OpenStackActions(
+            self.fuel_web.get_public_vip(cluster_id),
+            SERVTEST_USERNAME,
+            SERVTEST_PASSWORD,
+            SERVTEST_TENANT)
+
+        # Launch 5 instances VM_1 simultaneously in vcenter az in default
+        # net. Verify that creation was successful
+        self.show_step(3)
+        net_name = self.default.PRIVATE_NET
+        net = os_conn.get_network(net_name)
+        flavors = os_conn.nova.flavors.list()
+        micro_flavor = [f for f in flavors if f.name == 'm1.micro'][0]
+
+        image = os_conn.get_image(os_help.zone_image_maps['vcenter'])
+        os_conn.nova.servers.create(
+            name='VM_1',
+            image=image,
+            flavor=micro_flavor,
+            min_count=5,
+            availability_zone='vcenter',
+            nics=[{'net-id': net['id']}])
+        os_help.verify_instance_state(os_conn)
+
+        # Launch 5 instances VM_2 simultaneously in nova az in default net.
+        # Verify that creation was successful
+        self.show_step(4)
+        image = os_conn.get_image(os_help.zone_image_maps['nova'])
+        os_conn.nova.servers.create(
+            name='VM_2',
+            image=image,
+            flavor=micro_flavor,
+            min_count=5,
+            availability_zone='nova',
+            nics=[{'net-id': net['id']}])
+        os_help.verify_instance_state(os_conn)
+
+        self.show_step(5)  # Delete all VMs simultaneously
+        instances = os_conn.nova.servers.list()
+        for instance in instances:
+            instance.delete()
+        for instance in instances:
+            os_conn.verify_srv_deleted(instance)
+
+    @test(depends_on=[nsxt_setup_system],
           groups=['nsxt_hot'])
     @log_snapshot_after_test
     def nsxt_hot(self):
