@@ -117,12 +117,12 @@ Steps
 
     1. Set up for system tests.
     2. Log in to Horizon Dashboard.
-    3. Create two private networks net_01 and net_02.
-    4. Launch 1 instance in each network. Instances should belong to different az (nova and vcenter).
-    5. Check that instances can't communicate with each other.
-    6. Attach (add interface) both networks to default router.
+    3. Create private networks net_01 and net_02 with subnets.
+    4. Launch 1 instance on each network. Instances should belong to different az (nova and vcenter).
+    5. Attach (add interface) net_01 to default router. Check that instances can't communicate with each other.
+    6. Attach net_02 to default router.
     7. Check that instances can communicate with each other via router.
-    8. Detach (delete interface) both networks from default router.
+    8. Detach (delete interface) net_01 from default router.
     9. Check that instances can't communicate with each other.
     10. Delete created instances.
     11. Delete created networks.
@@ -251,16 +251,16 @@ Steps
     1. Set up for system tests.
     2. Log in to Horizon Dashboard.
     3. Add two private networks (net01 and net02).
-    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.101.0/24) to each network. Disable gateway for all subnets.
+    4. Add one subnet (net01_subnet01: 192.168.101.0/24, net02_subnet01, 192.168.102.0/24) to each network. Disable gateway for both subnets.
     5. Launch 1 instance in each network. Instances should belong to different az (nova and vcenter).
     6. Create new router (Router_01), set gateway and add interface to external network.
     7. Enable gateway on subnets. Attach private networks to created router.
-    8. Verify that VMs of different networks should communicate between each other.
+    8. Verify that VMs of different networks communicate between each other.
     9. Add one more router (Router_02), set gateway and add interface to external network.
     10. Detach net_02 from Router_01 and attach it to Router_02.
     11. Assign floating IPs for all created VMs.
-    12. Check that default security group allow the ICMP.
-    13. Verify that VMs of different networks should communicate between each other by FIPs.
+    12. Check that default security group allows the ICMP.
+    13. Verify that VMs of different networks communicate between each other by FIPs.
     14. Delete instances.
     15. Detach created networks from routers.
     16. Delete created networks.
