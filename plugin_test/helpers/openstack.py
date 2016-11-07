@@ -94,8 +94,7 @@ def check_connection_vms(ip_pair, command='pingv4', result_of_command=0,
 
     msg = 'Command "{0}", Actual exit code is NOT {1}'
     for ip_from in ip_pair:
-        with get_ssh_connection(ip_from, instance_creds[0],
-                                instance_creds[1]) as ssh:
+        with get_ssh_connection(ip_from, *instance_creds, timeout=60*3) as ssh:
             for ip_to in ip_pair[ip_from]:
                 logger.info('Check connection from {0} to {1}'.format(
                     ip_from, ip_to))
@@ -243,8 +242,7 @@ def remote_execute_command(instance1_ip, instance2_ip, command, wait=30):
         transport.start_client()
 
         logger.info("Passing authentication to VM")
-        transport.auth_password(
-            instance_creds[0], instance_creds[1])
+        transport.auth_password(*instance_creds)
         channel = transport.open_session()
         channel.get_pty()
         channel.fileno()
@@ -393,3 +391,14 @@ def create_access_point(os_conn, nics, security_groups, host_num=0):
         access_point, use_neutron=True)['floating_ip_address']
     wait(lambda: tcp_ping(access_point_ip, 22), timeout=60 * 5, interval=5)
     return access_point, access_point_ip
+
+
+def add_gateway_ip(os_conn, subnet_id, ip):
+    """Add gateway ip for subnet."""
+    os_conn.neutron.update_subnet(subnet_id, {'subnet': {'gateway_ip': ip}})
+
+
+def remove_router_interface(os_conn, router_id, subnet_id):
+    """Remove subnet interface from router."""
+    os_conn.neutron.remove_interface_router(
+        router_id, {"router_id": router_id, "subnet_id": subnet_id})
