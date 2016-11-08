@@ -24,3 +24,9 @@ if !$settings['insecure'] {
   }
   Nsxt_add_to_fabric { ca_file => $ca_file }
 }
+
+service { 'openvswitch-switch':
+  ensure => 'running'
+}
+
+Nsxt_add_to_fabric<||> -> Service['openvswitch-switch']
