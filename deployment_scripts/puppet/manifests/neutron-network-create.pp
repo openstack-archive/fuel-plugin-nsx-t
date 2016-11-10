@@ -18,23 +18,30 @@ $floating_net_cidr = $settings['floating_net_cidr']
 $floating_net_gw = $settings['floating_net_gw']
 $default_floating_net_gw = regsubst($floating_net_cidr,'^(\d+\.\d+\.\d+)\.\d+/\d+$','\1.1')
 
-neutron_network { $floating_net :
-  ensure                    => 'present',
-  provider_physical_network => $settings['external_network'],
-  provider_network_type     => 'local',
-  router_external           => true,
-  tenant_name               => $os_tenant_name,
-  shared                    => true,
-}
-neutron_subnet { "${floating_net}__subnet" :
-  ensure           => 'present',
-  cidr             => $floating_net_cidr,
-  network_name     => $floating_net,
-  tenant_name      => $os_tenant_name,
-  gateway_ip       => pick($floating_net_gw,$default_floating_net_gw),
-  enable_dhcp      => false,
-  allocation_pools => $floating_net_allocation_pool,
-  require          => Neutron_network[$floating_net],
+$skip_provider_network = try_get_value('skip_provider_network', false)
+
+if ! $skip_provider_network {
+  neutron_network { $floating_net :
+    ensure                    => 'present',
+    provider_physical_network => $settings['external_network'],
+    provider_network_type     => 'local',
+    router_external           => true,
+    tenant_name               => $os_tenant_name,
+    shared                    => true,
+  }
+
+  neutron_subnet { "${floating_net}__subnet" :
+    ensure           => 'present',
+    cidr             => $floating_net_cidr,
+    network_name     => $floating_net,
+    tenant_name      => $os_tenant_name,
+    gateway_ip       => pick($floating_net_gw, $default_floating_net_gw),
+    enable_dhcp      => false,
+    allocation_pools => $floating_net_allocation_pool,
+    require          => Neutron_network[$floating_net],
+  }
+
+  skip_provider_network($::nsxt::params::hiera_yml)
 }
 
 $internal_net_dns = split($settings['internal_net_dns'], ',')

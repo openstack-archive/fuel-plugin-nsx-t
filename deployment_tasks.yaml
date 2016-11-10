@@ -257,8 +257,6 @@
     - nsx-t-primary-neutron-server-start
     - nsx-t-configure-agents-dhcp
     - primary-openstack-network-agents-metadata
-  condition:
-    yaql_exp: "changed($.quantum)"
   parameters:
     puppet_manifest: puppet/manifests/neutron-network-create.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
