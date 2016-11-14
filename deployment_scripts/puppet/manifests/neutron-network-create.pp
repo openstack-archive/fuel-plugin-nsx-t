@@ -18,7 +18,7 @@ $floating_net_cidr = $settings['floating_net_cidr']
 $floating_net_gw = $settings['floating_net_gw']
 $default_floating_net_gw = regsubst($floating_net_cidr,'^(\d+\.\d+\.\d+)\.\d+/\d+$','\1.1')
 
-$skip_provider_network = try_get_value($settings, 'skip_provider_network', false)
+$skip_provider_network = hiera('skip_provider_network', false)
 
 if ! $skip_provider_network {
   neutron_network { $floating_net :
