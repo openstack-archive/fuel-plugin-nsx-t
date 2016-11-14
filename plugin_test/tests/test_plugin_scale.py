@@ -330,7 +330,8 @@ class TestNSXtScale(TestNSXtBase):
         target_node2 = self.fuel_web.get_nailgun_node_by_name('slave-05')
         self.fuel_web.vcenter_configure(cluster_id,
                                         target_node_1=target_node1['hostname'],
-                                        target_node_2=target_node2['hostname'])
+                                        target_node_2=target_node2['hostname'],
+					multiclusters=True)
 
         self.show_step(12)  # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
