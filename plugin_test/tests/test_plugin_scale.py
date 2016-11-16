@@ -266,7 +266,7 @@ class TestNSXtScale(TestNSXtBase):
             10. Add node with compute-vmware role.
             11. Reconfigure vcenter compute clusters.
             12. Redeploy cluster.
-            13. Check that instance has been removed.
+            13. Check that instance is in place.
             14. Run OSTF.
             15. Remove node with compute-vmware role.
             16. Reconfigure vcenter compute clusters.
@@ -336,8 +336,8 @@ class TestNSXtScale(TestNSXtBase):
         self.show_step(12)  # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
 
-        self.show_step(13)  # Check that instance has been removed
-        assert_true(os_conn.is_srv_deleted(vcenter_vm))
+        self.show_step(13)  # Check that instance is in place
+        os_help.check_instances_state(os_conn)
 
         self.show_step(14)  # Run OSTF
         self.fuel_web.run_ostf(cluster_id)
