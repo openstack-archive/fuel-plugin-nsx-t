@@ -13,6 +13,8 @@ License for the specific language governing permissions and limitations
 under the License.
 """
 
+import itertools
+
 from proboscis import test
 from proboscis.asserts import assert_true
 
@@ -240,7 +242,6 @@ class TestNSXtScale(TestNSXtBase):
 
     @test(depends_on=[SetupEnvironment.prepare_slaves_5],
           groups=['nsxt_add_delete_compute_vmware_node'])
-    @log_snapshot_after_test
     def nsxt_add_delete_compute_vmware_node(self):
         """Verify functionality when compute-vmware has been removed or added.
 
@@ -266,7 +267,7 @@ class TestNSXtScale(TestNSXtBase):
             10. Add node with compute-vmware role.
             11. Reconfigure vcenter compute clusters.
             12. Redeploy cluster.
-            13. Check that instance has been removed.
+            13. Check that instance is in place.
             14. Run OSTF.
             15. Remove node with compute-vmware role.
             16. Reconfigure vcenter compute clusters.
@@ -319,7 +320,7 @@ class TestNSXtScale(TestNSXtBase):
             SERVTEST_PASSWORD,
             SERVTEST_TENANT)
 
-        vcenter_vm = os_help.create_instance(os_conn, az='vcenter')
+        os_help.create_instance(os_conn, az='vcenter')
 
         self.show_step(10)  # Add node with compute-vmware role
         self.fuel_web.update_nodes(cluster_id,
@@ -336,8 +337,8 @@ class TestNSXtScale(TestNSXtBase):
         self.show_step(12)  # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
 
-        self.show_step(13)  # Check that instance has been removed
-        assert_true(os_conn.is_srv_deleted(vcenter_vm))
+        self.show_step(13)  # Check that instance is in place
+        os_help.check_instances_state(os_conn)
 
         self.show_step(14)  # Run OSTF
         self.fuel_web.run_ostf(cluster_id)
@@ -348,9 +349,23 @@ class TestNSXtScale(TestNSXtBase):
                                    False, True)
 
         self.show_step(16)  # Reconfigure vcenter compute clusters
-        target_node2 = self.fuel_web.get_nailgun_node_by_name('slave-04')
-        self.fuel_web.vcenter_configure(cluster_id,
-                                        target_node_1=target_node2['hostname'])
+        vmware_attr = \
+            self.fuel_web.client.get_cluster_vmware_attributes(cluster_id)
+        vcenter_data = vmware_attr['editable']['value']['availability_zones'][
+            0]["nova_computes"]
+
+        comp_vmware_nodes = self.fuel_web.get_nailgun_cluster_nodes_by_roles(
+            cluster_id, ['compute-vmware'])
+        comp_vmware_nodes = [node for node in comp_vmware_nodes if
+                             node['pending_deletion'] is True]
+
+        for node, nova_comp in itertools.product(comp_vmware_nodes,
+                                                 vcenter_data):
+            if node['hostname'] == nova_comp['target_node']['current']['id']:
+                vcenter_data.remove(nova_comp)
+        self.fuel_web.client.update_cluster_vmware_attributes(cluster_id,
+                                                              vmware_attr)
+
 
         self.show_step(17)    # Redeploy cluster
         self.fuel_web.deploy_cluster_wait(cluster_id)
