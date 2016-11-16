@@ -162,7 +162,7 @@ Steps
     11. Add node with compute-vmware role.
     12. Reconfigure vcenter compute clusters.
     13. Redeploy cluster.
-    14. Check vm instance has been removed.
+    14. Check that instance is in place.
     15. Run OSTF.
     16. Remove node with compute-vmware role from base installation.
     17. Reconfigure vcenter compute clusters.
