@@ -1,6 +1,15 @@
 Limitations
 ===========
 
+Fuel NSX-T plugin does not support SSL verification
+---------------------------------------------------
+
+Plugin does not allow user to enable SSL certificate verification during
+deployment. As workaround it is possible to store certificate at post
+deployment stage and enable it in Neutron NSX configuration file
+(``/etc/neutron/plugins/vmware/nsx.conf``) (Neutron NSX plugin supports SSL
+certificate.
+
 NSX-T plugin cannot be used simultaneously with NSXv plugin
 -----------------------------------------------------------
 

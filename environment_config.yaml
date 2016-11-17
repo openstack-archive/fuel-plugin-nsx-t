@@ -3,10 +3,10 @@ attributes:
     group: network
   insecure:
     value: true
-    label: "Bypass NSX Manager certificate verification"
+    label: ""
     description: ''
     weight: 1
-    type: 'checkbox'
+    type: 'hidden'
   ca_file:
     value: ''
     label: 'CA certificate file'
