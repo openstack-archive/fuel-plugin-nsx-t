@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 INVALIDOPTS_ERR=100
@@ -407,11 +407,7 @@ RunTest() {
 
     # run python virtualenv
     if [ "${VENV}" = "yes" ]; then
-        if [ "${DRY_RUN}" = "yes" ]; then
-            echo . $VENV_PATH/bin/activate
-        else
-            . $VENV_PATH/bin/activate
-        fi
+      . $VENV_PATH/bin/activate
     fi
 
     if [ "${ENV_NAME}" = "" ]; then
@@ -431,14 +427,9 @@ RunTest() {
     export ISO_PATH
 
     if [ "${KEEP_BEFORE}" != "yes" ]; then
-      # remove previous environment
-      if [ "${DRY_RUN}" = "yes" ]; then
-        echo dos.py erase "${ENV_NAME}"
-      else
         if dos.py list | grep -q "^${ENV_NAME}\$" ; then
-          dos.py erase "${ENV_NAME}"
+            dos.py erase "${ENV_NAME}"
         fi
-      fi
     fi
 
     # gather additional option for this nose test run
@@ -455,16 +446,15 @@ RunTest() {
 
     clean_old_bridges
 
-    # run python test set to create environments, deploy and test product
-    if [ "${DRY_RUN}" = "yes" ]; then
-        echo export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}"
-        echo python plugin_test/run_tests.py -q --nologcapture --with-xunit ${OPTS}
-    else
-        export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}"
-        echo ${PYTHONPATH}
-        python plugin_test/run_tests.py -q --nologcapture --with-xunit ${OPTS} &
+    export PLUGIN_WORKSPACE="${WORKSPACE/\/fuel-qa}"
+    export WORKSPACE="${PLUGIN_WORKSPACE}/fuel-qa"
+    export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}:${PLUGIN_WORKSPACE}"
 
-    fi
+    [[ "${DEBUG}" == "true" ]] && echo "PYTHONPATH:${PYTHONPATH} PATH${PATH}"
+    [[ "${DEBUG}" == "true" ]] && echo "PLUGIN_WORKSPACE:${PLUGIN_WORKSPACE}"
+    [[ "${DEBUG}" == "true" ]] && echo "WORKSPACE:${WORKSPACE}"
+
+    python $PLUGIN_WORKSPACE/plugin_test/run_tests.py -q --nologcapture --with-xunit ${OPTS} &
 
     SYSTEST_PID=$!
 
@@ -474,7 +464,7 @@ RunTest() {
 	  exit 1
     fi
 
-    while [ "$(virsh net-list | grep -c $ENV_NAME)" -ne 5 ];do sleep 10
+    while [ "$(virsh net-list | grep -c $ENV_NAME)" -ne 5 ]; do sleep 10
 	  if ! ps -p $SYSTEST_PID > /dev/null
 	  then
 	    echo System tests exited prematurely, aborting
@@ -578,17 +568,16 @@ clean_iptables() {
 }
 
 revert_ws() {
-  for i in $1
-  do
-    vmrun -T ws-shared -h https://localhost:443/sdk -u $WORKSTATION_USERNAME -p $WORKSTATION_PASSWORD listRegisteredVM | grep -q $i || { echo "VM $i does not exist"; continue; }
+  cmd="vmrun -T ws-shared -h https://localhost:443/sdk -u $WORKSTATION_USERNAME -p $WORKSTATION_PASSWORD"
+  for i in $1; do
+    $cmd listRegisteredVM | grep -q $i || { echo "VM $i does not exist"; continue; }
     echo vmrun: reverting $i to $WORKSTATION_SNAPSHOT
-    vmrun -T ws-shared -h https://localhost:443/sdk -u $WORKSTATION_USERNAME -p $WORKSTATION_PASSWORD revertToSnapshot "[standard] $i/$i.vmx" $WORKSTATION_SNAPSHOT || { echo "Error: revert of $i failed";  return 1; }
+    $cmd revertToSnapshot "[standard] $i/$i.vmx" $WORKSTATION_SNAPSHOT || { echo "Error: revert of $i failed";  return 1; }
   done
 
-  for i in $1
-  do
+  for i in $1; do
     echo vmrun: starting $i
-    vmrun -T ws-shared -h https://localhost:443/sdk -u $WORKSTATION_USERNAME -p $WORKSTATION_PASSWORD start "[standard] $i/$i.vmx" || { echo "Error: $i failed to start";  return 1; }
+    $cmd start "[standard] $i/$i.vmx" || { echo "Error: $i failed to start";  return 1; }
   done
 }
 
