@@ -455,16 +455,9 @@ RunTest() {
 
     clean_old_bridges
 
-    # run python test set to create environments, deploy and test product
-    if [ "${DRY_RUN}" = "yes" ]; then
-        echo export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}"
-        echo python plugin_test/run_tests.py -q --nologcapture --with-xunit ${OPTS}
-    else
-        export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}"
-        echo ${PYTHONPATH}
-        python plugin_test/run_tests.py -q --nologcapture --with-xunit ${OPTS} &
-
-    fi
+    export PYTHONPATH="${PYTHONPATH:+${PYTHONPATH}:}${WORKSPACE}"
+    echo ${PYTHONPATH}
+    python ${WORKSPACE}/run_tests.py -q --nologcapture --with-xunit ${OPTS} &
 
     SYSTEST_PID=$!
 
