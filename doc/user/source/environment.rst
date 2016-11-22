@@ -25,6 +25,10 @@ UI by doing the following:
    .. image:: /image/neutron-nsxt-item.png
       :scale: 70 %
 
+ESXi hosts that participate in vCenter cluster that is used on the VMware tab
+must be manually added as transport nodes in NSX Manager. Hosts must be added
+prior OpenStack deployment.
+
 Network setup
 -------------
 
