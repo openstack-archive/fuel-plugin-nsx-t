@@ -22,7 +22,7 @@ UI by doing the following:
 #. On the :guilabel:`Networking setup` configuration step, select
    :guilabel:`Neutron with NSX-T plugin` radio button
 
-   .. image:: /image/neutron-nsxt-item.png
+   .. image:: ../image/neutron-nsxt-item.png
       :scale: 70 %
 
 ESXi hosts that participate in vCenter cluster that is used on the VMware tab
@@ -44,7 +44,7 @@ enabled. Otherwise compute node will be communicating with NSX Manager through
 controller that perform NAT which will hide compute node IP addresses and will
 prevent them to register in NSX management plane.
 
-  .. image:: /image/nsx-t-public.png
+  .. image:: ../image/nsx-t-public.png
      :scale: 100%
 
 Another way is to locate NSX nodes in OpenStack management network. In this
@@ -52,7 +52,7 @@ setup there is no need to assign public network to all nodes, because OpenStack
 and NSX nodes has L2 connectivity and no NAT is performed. OpenStack
 controllers and computes will still use Public network as default route.
 
-  .. image:: /image/nsx-t-mgmt.png
+  .. image:: ../image/nsx-t-mgmt.png
      :scale: 100%
 
 During the deployment, the plugin creates a simple network topology for

@@ -26,7 +26,7 @@ It is not possible to enable plugin on already existing OpenStack.
 Ubuntu cloud archive distribution is not supported
 --------------------------------------------------
 
-   .. image:: /image/uca-archive.png
+   .. image:: ../image/uca-archive.png
       :scale: 70 %
 
 Fuel 9.0 provides two options for OpenStack release. One is plain Ubuntu
