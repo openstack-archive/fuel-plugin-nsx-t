@@ -183,7 +183,7 @@ Expected result
 All elements of NSX-T plugin section are regimented.
 
 
-Deployment with plugin, controller and vmware datastore backend.
+Deploy of non-ha cluster with NSX-T plugin and one compute node.
 ----------------------------------------------------------------
 
 
