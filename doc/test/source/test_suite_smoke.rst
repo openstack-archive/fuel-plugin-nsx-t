@@ -295,7 +295,7 @@ nsxt_insecure_false
 Description
 ###########
 
-Check that insecure checkbox functions properly.
+Check secure connection with NSX Manager.
 
 
 Complexity
@@ -309,10 +309,10 @@ Steps
 
     1. Provide CA certificate via web UI or through system storage.
     2. Install NSX-T plugin.
-    3. Enable plugin on tab Networks -> NSX-T plugin.
-    4. Fill the form with corresponding values.
-    5. Uncheck checkbox 'Bypass NSX Manager certificate verification'.
-    6. Deploy cluster with one controller.
+    3. Deploy cluster with one controller.
+    4. Upload cert file on controller
+    5. Set the insecure option in false and specify cert file (/etc/neutron/plugins/vmware/nsx.ini).
+    6. Restart neutron-server.
     7. Run OSTF.
 
 
