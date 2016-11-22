@@ -8,13 +8,13 @@ NSX Transformers uses STT protocol to carry virtual machines traffic.  Plugin
 requires that interfaces which are going to be used for STT traffic must not
 carry any other traffic (PXE, storage, openstack management).
 
-.. image:: /image/stt-interface.png
+.. image:: ../image/stt-interface.png
 
 Switch to the :guilabel:`Networks` tab of the Fuel web UI and click the
 :guilabel:`Settings`/`Other` label. The plugin checkbox is enabled
 by default. The screenshot below shows only the settings in focus:
 
-.. image:: /image/nsxt-settings.png
+.. image:: ../image/nsxt-settings.png
    :scale: 60 %
 
 The plugin contains the following settings:
