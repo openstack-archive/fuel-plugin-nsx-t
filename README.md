@@ -1,5 +1,3 @@
-Fuel NSX-T plugin
-=================
+# This repo has moved to OpenDev
 
-The plugin allows Fuel deployment engineers install OpenStack that will use
-VMware NSX Transformers as network backend for Neutron.
+It can now be found at [https://opendev.org/x/fuel-plugin-nsx-t](https://opendev.org/x/fuel-plugin-nsx-t)
